@@ -1,73 +1,10 @@
 import React, { useState } from "react";
-import AddWorker from "./AddWorker";
-import EditWorker from "./EditWorker";
-import ViewWorker from "./ViewWorker";
+import { Link } from "react-router";
 import Layout from "../../Layout";
+import axios from "../../../Lib/axios";
 
 const WorkerList = () => {
-  const [workers, setWorkers] = useState([
-    {
-      id: 1,
-      name: "Abu Bakkar",
-      phone: "01811111111",
-      nid: "3764521062",
-      address: "Dhaka, Bangladesh",
-      department: "HR",
-      designation_id: "HR Officer",
-      joining_date: "2025-05-15",
-      basic_salary: 100000,
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Samina Afrin",
-      phone: "01879228978",
-      nid: "9876543210",
-      address: "Dhaka, Bangladesh",
-      department: "IT",
-      designation_id: "Software Engineer",
-      joining_date: "2024-09-15",
-      basic_salary: 80000,
-      status: "Active",
-    },
-     {
-      id: 3,
-      name: "Tasfia Saba",
-      phone: "01833333333",
-      nid: "1234567890",
-      address: "Dhaka, Bangladesh",
-      department: "IT",
-      designation_id: "Designer",
-      joining_date: "2024-05-15",
-      basic_salary: 50000,
-      status: "Active",
-    }, 
-
-    {
-      id: 4,
-      name: "Sohag Zaman",
-      phone: "01844444444",
-      nid: "0987654321",
-      address: "Dhaka, Bangladesh",
-      department: "Driver",
-      designation_id: "Driver",
-      joining_date: "2024-05-15",
-      basic_salary: 20000,
-      status: "Active",
-    },
-    {
-      id: 5,
-      name: "Zamil Hossain",
-      phone: "01833333333",
-      nid: "1234567890",
-      address: "Dhaka, Bangladesh",
-      department: "IT",
-      designation_id: "Helper",
-      joining_date: "2024-05-15",
-      basic_salary: 40000,
-      status: "Inactive",
-    },
-  ]);
+  const [workers, setWorkers] = useState([]);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -75,6 +12,8 @@ const WorkerList = () => {
   const [showAdd, setShowAdd] = useState(false);
   const [editWorker, setEditWorker] = useState(null);
   const [viewWorker, setViewWorker] = useState(null);
+
+  
 
   // Search + Filter
   const filteredWorkers = workers.filter((worker) => {
@@ -89,39 +28,27 @@ const WorkerList = () => {
   });
 
   // Add Worker
-  const handleAddWorker = (worker) => {
-    setWorkers([
-      ...workers,
-      {
-        ...worker,
-        id: Date.now(),
-      },
-    ]);
-
-    setShowAdd(false);
-  };
-
-  // Update Worker
-  const handleUpdateWorker = (updatedWorker) => {
-    setWorkers(
-      workers.map((worker) =>
-        worker.id === updatedWorker.id ? updatedWorker : worker
-      )
-    );
-
-    setEditWorker(null);
-  };
+    async function fetchWorker() {
+      const res= await axios.get('workers/index.php');
+                setWorkers(res.data.data)
+    }
+    React.useEffect(() => {
+      fetchWorker();
+    }, []);
 
   // Delete Worker
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this worker?"
-    );
 
-    if (confirmDelete) {
-      setWorkers(workers.filter((worker) => worker.id !== id));
+
+  async function handleDelete(id) {
+    if (window.confirm("Are you sure you want to delete this data?")) {
+      let res = await axios.delete(`workers/delete.php?id=${id}`)
+      if(res.data.status){
+        fetchWorker();
+      }else{
+        alert(res.data.message);
+      }
     }
-  };
+  }
 
   return (
     <Layout>
@@ -136,13 +63,13 @@ const WorkerList = () => {
           </p>
         </div>
 
-        <button
+        <Link
           className="btn btn-primary"
-          onClick={() => setShowAdd(true)}
+          to="/workers/create"
         >
           <i className="bi bi-person-plus-fill me-2"></i>
           Add Worker
-        </button>
+        </Link>
       </div>
 
       {/* Search & Filter */}
@@ -222,9 +149,9 @@ const WorkerList = () => {
 
                       <td>{worker.phone}</td>
 
-                      <td>{worker.department}</td>
+                      <td>{worker.dept_name}</td>
 
-                      <td>{worker.designation_id}</td>
+                      <td>{worker.desi_name}</td>
 
                       <td>{worker.joining_date}</td>
 
@@ -248,22 +175,22 @@ const WorkerList = () => {
                         <div className="btn-group">
 
                           {/* View */}
-                          <button
+                          <Link
+                            to={`/workers/view/${worker.id}`}
                             className="btn btn-sm btn-info text-white"
                             title="View"
-                            onClick={() => setViewWorker(worker)}
                           >
                             <i className="bi bi-eye"></i>
-                          </button>
+                          </Link>
 
                           {/* Edit */}
-                          <button
+                          <Link
                             className="btn btn-sm btn-warning"
                             title="Edit"
-                            onClick={() => setEditWorker(worker)}
+                            to={`/workers/edit/${worker.id}`}
                           >
                             <i className="bi bi-pencil"></i>
-                          </button>
+                          </Link>
 
                           {/* Delete */}
                           <button

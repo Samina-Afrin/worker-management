@@ -13,14 +13,15 @@ function Login() {
     const form = new FormData(event.target);
 
     axios
-      .post(`${import.meta.env.VITE_API_URL}login.php`, {
-        email: form.get("email"),
-        password: form.get("password")
-      })
+      .post(`${import.meta.env.VITE_API_URL}login.php`, form)
       .then((response) => {
-        sessionStorage.setItem("access_token", response.data.jwt);
-        sessionStorage.setItem("userdata", response.data.data);
-        window.location.href = "./dashboard";
+        if (response.data.status == true) {
+          localStorage.setItem("access_token", response.data.jwt);
+          localStorage.setItem("userdata", response.data.data);
+          window.location.href = './dashboard';
+        } else {
+          setMessage("Invalid email or password.");
+        }
       })
       .catch(() => {
         setMessage("An error occurred while creating your account. Please try again.");

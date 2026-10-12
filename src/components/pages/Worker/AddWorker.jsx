@@ -1,17 +1,45 @@
 import React, { useState } from "react";
+import { useParams } from "react-router";
 import Layout from "../../Layout";
+import axios from "../../../Lib/axios";
 
-const AddWorker = ({ onAdd, onClose }) => {
+const AddWorker = () => {
+  
+  let { id } = useParams();
+  const [department, setDepartment] = useState([]);
+  const [designation, setDesignation] = useState([]);
+
+  async function fetchDepartment() {
+      const res= await axios.get('department/index.php');
+                setDepartment(res.data.data)
+        
+    }
+
+  async function fetchDesignation() {
+      const res= await axios.get('designation/index.php');
+                setDesignation(res.data.data)
+  }
+  async function fetchWorker() {
+      const res= await axios.get('workers/single.php?id=' + id);
+                setFormData(res?.data?.data[0])
+  }
+    React.useEffect(() => {
+        fetchDepartment();
+        fetchDesignation();
+        if (id) {
+            fetchWorker();
+        }
+    }, []);
 
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     nid: "",
     address: "",
-    department: "",
-    designation: "",
-    joiningDate: "",
-    basicSalary: "",
+    department_id: "",
+    designation_id: "",
+    joining_date: "",
+    basic_salary: "",
     status: "Active",
   });
 
@@ -24,18 +52,25 @@ const AddWorker = ({ onAdd, onClose }) => {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+   const handleSubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+      
+        // const data = Object.fromEntries(formData.entries());
+        let url = '';
+        if (id) {
+            url = 'workers/update.php?id=' + id;
+        } else {
+            url = 'workers/create.php';
+        }
+        let response = await axios.post(url, formData);
 
-    onAdd(formData);
-  };
+        window.location.href = '/workers';
+    };
 
   return (
     <Layout>
-    <div
-      className="modal d-block"
-      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-    >
+    
 
       <div className="modal-dialog modal-lg modal-dialog-centered">
 
@@ -47,13 +82,6 @@ const AddWorker = ({ onAdd, onClose }) => {
               <i className="bi bi-person-plus-fill me-2"></i>
               Add New Worker
             </h5>
-
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onClose}
-            ></button>
-
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -61,23 +89,7 @@ const AddWorker = ({ onAdd, onClose }) => {
             <div className="modal-body">
 
               <div className="row g-3">
-                 {/* ID */}
-                <div className="col-md-6">
-                  <label className="form-label">
-                    Id
-                  </label>
-
-                  <input
-                    type="text"
-                    name="id"
-                    className="form-control"
-                    value={formData.id}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-
+                
                 {/* Name */}
                 <div className="col-md-6">
                   <label className="form-label">
@@ -149,17 +161,18 @@ const AddWorker = ({ onAdd, onClose }) => {
                   </label>
 
                   <select
-                    name="department"
+                    name="department_id"
                     className="form-select"
-                    value={formData.department}
+                    value={formData.department_id}
                     onChange={handleChange}
                     required
                   >
                     <option value="">Select Department</option>
-                    <option value="IT">IT</option>
-                    <option value="HR">HR</option>
-                    <option value="Accounts">Accounts</option>
-                    <option value="Marketing">Marketing</option>
+                    {department && department.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -169,14 +182,21 @@ const AddWorker = ({ onAdd, onClose }) => {
                     Designation
                   </label>
 
-                  <input
-                    type="text"
-                    name="designation"
-                    className="form-control"
-                    value={formData.designation}
+                  <select
+                    name="designation_id"
+                    className="form-select"
+                    value={formData.designation_id}
                     onChange={handleChange}
                     required
-                  />
+                  >
+                    <option value="">Select Designation</option>
+                    {designation && designation.map((des) => (
+                      <option key={des.id} value={des.id}>
+                        {des.name}
+                      </option>
+                    ))}
+                  </select>
+
                 </div>
 
                 {/* Joining Date */}
@@ -234,20 +254,13 @@ const AddWorker = ({ onAdd, onClose }) => {
 
             <div className="modal-footer">
 
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={onClose}
-              >
-                Cancel
-              </button>
-
+             
               <button
                 type="submit"
                 className="btn btn-primary"
               >
                 <i className="bi bi-save me-2"></i>
-                Save Worker
+                {id ? "Update Worker" : "Save Worker"}
               </button>
 
             </div>
@@ -257,8 +270,6 @@ const AddWorker = ({ onAdd, onClose }) => {
         </div>
 
       </div>
-
-    </div>
     </Layout>
   );
 };

@@ -1,9 +1,29 @@
 
 import React from "react";
+import { useParams } from "react-router";
 import Layout from "../../Layout";
 
-const ViewWorker = ({ worker, onClose }) => {
-  if (!worker) return null;
+const ViewWorker = () => {
+  
+  let { id } = useParams();
+    const [worker, setWorkers] = React.useState({
+    name: "",
+    phone: "",
+    nid: "",
+    address: "",
+    department_id: "",
+    designation_id: "",
+    joining_date: "",
+    basic_salary: "",
+    status: "Active",
+  });
+   async function fetchWorker() {
+      const res= await axios.get('workers/single.php?id=' + id);
+                setWorkers(res?.data?.data[0])
+  }
+  React.useEffect(() => {
+        fetchWorker();
+      }, []);
 
   return (
     <Layout>
@@ -23,24 +43,14 @@ const ViewWorker = ({ worker, onClose }) => {
               Worker Details
             </h5>
 
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onClose}
-              aria-label="Close"
-            ></button>
+           
           </div>
 
           {/* Modal Body */}
           <div className="modal-body">
             <div className="row g-3">
 
-              <div className="col-md-6">
-                <div className="border rounded p-3">
-                  <small className="text-muted">ID</small>
-                  <h6 className="mb-0">{worker.id}</h6>
-                </div>
-              </div>
+             
 
               <div className="col-md-6">
                 <div className="border rounded p-3">
@@ -123,13 +133,7 @@ const ViewWorker = ({ worker, onClose }) => {
 
           {/* Modal Footer */}
           <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onClose}
-            >
-              Close
-            </button>
+            
           </div>
 
         </div>

@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import { useState } from "react";
 import WorkerList from './components/pages/Worker/WorkerList.jsx'
 import AddWorker from './components/pages/Worker/AddWorker.jsx'
-import EditWorker from './components/pages/Worker/EditWorker.jsx'
 import ViewWorker from './components/pages/Worker/ViewWorker.jsx'
 import SalaryList from './components/Salary/salarylist.jsx'
 import SalaryDetails from './components/Salary/salarydetails.jsx'
@@ -44,7 +43,7 @@ function App() {
             <Route path="workers">
               <Route index element={<WorkerList />} />
               <Route path="create" element={<AddWorker />} />
-              <Route path="edit/:id" element={<EditWorker />} />
+              <Route path="edit/:id" element={<AddWorker />} />
               <Route path="view/:id" element={<ViewWorker />} />
             </Route>
           </Route>
