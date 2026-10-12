@@ -211,7 +211,7 @@ function SalaryList() {
 
                 <thead className="table-light">
                   <tr>
-                    <th>#</th>
+                    <th>Id</th>
                     <th>Worker</th>
                     <th>Month</th>
                     <th>Basic Salary</th>

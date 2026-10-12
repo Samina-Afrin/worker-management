@@ -49,6 +49,21 @@ const EditWorker = ({ worker, onUpdate, onClose }) => {
             <div className="modal-body">
 
               <div className="row g-3">
+                <div className="col-md-6">
+                  <label className="form-label">
+                    <Id></Id>
+                  </label>
+
+                  <input
+                    type="text"
+                    name="id"
+                    className="form-control"
+                    value={formData.id}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
 
                 <div className="col-md-6">
                   <label className="form-label">
@@ -142,28 +157,28 @@ const EditWorker = ({ worker, onUpdate, onClose }) => {
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    Joining Date
+                    Joining_date
                   </label>
 
                   <input
                     type="date"
-                    name="joiningDate"
+                    name="joining_date"
                     className="form-control"
-                    value={formData.joiningDate}
+                    value={formData.joining_date}
                     onChange={handleChange}
                   />
                 </div>
 
                 <div className="col-md-6">
                   <label className="form-label">
-                    Basic Salary
+                    Basic_salary
                   </label>
 
                   <input
                     type="number"
-                    name="basicSalary"
+                    name="basic_salary"
                     className="form-control"
-                    value={formData.basicSalary}
+                    value={formData.basic_salary}
                     onChange={handleChange}
                   />
                 </div>

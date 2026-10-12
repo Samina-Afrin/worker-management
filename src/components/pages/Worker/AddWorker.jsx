@@ -59,6 +59,22 @@ const AddWorker = ({ onAdd, onClose }) => {
             <div className="modal-body">
 
               <div className="row g-3">
+                 {/* ID */}
+                <div className="col-md-6">
+                  <label className="form-label">
+                    Id
+                  </label>
+
+                  <input
+                    type="text"
+                    name="id"
+                    className="form-control"
+                    value={formData.id}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
 
                 {/* Name */}
                 <div className="col-md-6">
@@ -169,9 +185,9 @@ const AddWorker = ({ onAdd, onClose }) => {
 
                   <input
                     type="date"
-                    name="joiningDate"
+                    name="joining_date"
                     className="form-control"
-                    value={formData.joiningDate}
+                    value={formData.joining_date}
                     onChange={handleChange}
                     required
                   />
@@ -185,9 +201,9 @@ const AddWorker = ({ onAdd, onClose }) => {
 
                   <input
                     type="number"
-                    name="basicSalary"
+                    name="basic_salary"
                     className="form-control"
-                    value={formData.basicSalary}
+                    value={formData.basic_salary}
                     onChange={handleChange}
                     required
                   />

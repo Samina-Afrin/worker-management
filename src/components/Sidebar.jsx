@@ -27,18 +27,12 @@ function Sidebar() {
             <div className="sidebar-menu-title">Components</div>
             <ul className="sidebar-menu-list">
             <li className="sidebar-menu-item">
-                <a href="tables-basic.html" className="sidebar-menu-link" id="menu-basictables" title="Basic Tables">
+                <NavLink to="/basic-tables" className="sidebar-menu-link" id="menu-basictables" title="Basic Tables">
                 <i className="bi bi-table"></i>
                 <span>Basic Tables</span>
-                </a>
+                </NavLink>
             </li>
-            <li className="sidebar-menu-item">
-                <a href="ui-forms.html" className="sidebar-menu-link" id="menu-uiforms" title="Forms and Input">
-                <i className="bi bi-input-cursor-text"></i>
-                <span>Forms & Input</span>
-                </a>
-            </li>
-            
+           
             </ul>
         </div>
 

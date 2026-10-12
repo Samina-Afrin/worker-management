@@ -188,7 +188,7 @@ function ListDesignation() {
 
                   <thead className="table-light">
                     <tr>
-                      <th>#</th>
+                      <th>Id</th>
                       <th>Designation</th>
                       <th>Description</th>
                       <th>Basic Salary</th>

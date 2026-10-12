@@ -2,10 +2,10 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import Sidebar from "./components/Sidebar.jsx";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
-import WorkerList from './components/pages/WorkerManagement/WorkerList.jsx'
-import AddWorker from './components/pages/WorkerManagement/AddWorker.jsx'
-import EditWorker from './components/pages/WorkerManagement/EditWorker.jsx'
-import ViewWorker from './components/pages/WorkerManagement/ViewWorker.jsx'
+import WorkerList from './components/pages/Worker/WorkerList.jsx'
+import AddWorker from './components/pages/Worker/AddWorker.jsx'
+import EditWorker from './components/pages/Worker/EditWorker.jsx'
+import ViewWorker from './components/pages/Worker/ViewWorker.jsx'
 import SalaryList from './components/Salary/salarylist.jsx'
 import SalaryDetails from './components/Salary/salarydetails.jsx'
 import SalaryAdd from './components/Salary/salaryadd.jsx'
@@ -15,6 +15,8 @@ import EditDesignation from './components/pages/Designation/EditDesignation.jsx'
 import ViewDesignation from './components/pages/Designation/ViewDesignation.jsx'
 import ListDesignation from './components/pages/Designation/ListDesignation.jsx'
 import Dashboard from './components/pages/Dashboard/Dashboard.jsx'
+import BasicTables from './components/pages/Basic Tables/basic tables.jsx'
+
 
 
 function App() {
@@ -50,8 +52,10 @@ function App() {
         <Routes>
           <Route path="dashboard" element={<Dashboard />} />
         </Routes>
-         
-         
+        <Routes>
+          <Route path="basic-tables" element={<BasicTables />} />
+        </Routes>
+      
         <Footer />
       </div>
       

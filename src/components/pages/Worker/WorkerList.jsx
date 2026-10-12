@@ -12,9 +12,9 @@ const WorkerList = () => {
       nid: "3764521062",
       address: "Dhaka, Bangladesh",
       department: "HR",
-      designation: "HR Officer",
-      joiningDate: "2025-05-15",
-      basicSalary: 100000,
+      designation_id: "HR Officer",
+      joining_date: "2025-05-15",
+      basic_salary: 100000,
       status: "Active",
     },
     {
@@ -24,9 +24,9 @@ const WorkerList = () => {
       nid: "9876543210",
       address: "Dhaka, Bangladesh",
       department: "IT",
-      designation: "Software Engineer",
-      joiningDate: "2024-09-15",
-      basicSalary: 80000,
+      designation_id: "Software Engineer",
+      joining_date: "2024-09-15",
+      basic_salary: 80000,
       status: "Active",
     },
      {
@@ -36,9 +36,9 @@ const WorkerList = () => {
       nid: "1234567890",
       address: "Dhaka, Bangladesh",
       department: "IT",
-      designation: "Designer",
-      joiningDate: "2024-05-15",
-      basicSalary: 50000,
+      designation_id: "Designer",
+      joining_date: "2024-05-15",
+      basic_salary: 50000,
       status: "Active",
     }, 
 
@@ -49,9 +49,9 @@ const WorkerList = () => {
       nid: "0987654321",
       address: "Dhaka, Bangladesh",
       department: "Driver",
-      designation: "Driver",
-      joiningDate: "2024-05-15",
-      basicSalary: 20000,
+      designation_id: "Driver",
+      joining_date: "2024-05-15",
+      basic_salary: 20000,
       status: "Active",
     },
     {
@@ -61,9 +61,9 @@ const WorkerList = () => {
       nid: "1234567890",
       address: "Dhaka, Bangladesh",
       department: "IT",
-      designation: "Helper",
-      joiningDate: "2024-05-15",
-      basicSalary: 40000,
+      designation_id: "Helper",
+      joining_date: "2024-05-15",
+      basic_salary: 40000,
       status: "Inactive",
     },
   ]);
@@ -194,7 +194,7 @@ const WorkerList = () => {
 
               <thead className="table-light">
                 <tr>
-                  <th>#</th>
+                  <th>Id</th>
                   <th>Worker</th>
                   <th>Phone</th>
                   <th>Department</th>
@@ -222,12 +222,12 @@ const WorkerList = () => {
 
                       <td>{worker.department}</td>
 
-                      <td>{worker.designation}</td>
+                      <td>{worker.designation_id}</td>
 
-                      <td>{worker.joiningDate}</td>
+                      <td>{worker.joining_date}</td>
 
                       <td>
-                        ৳ {Number(worker.basicSalary).toLocaleString()}
+                        ৳ {Number(worker.basic_salary).toLocaleString()}
                       </td>
 
                       <td>
