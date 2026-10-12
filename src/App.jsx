@@ -1,7 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router";
-import Sidebar from "./components/Sidebar.jsx";
-import Header from "./components/Header.jsx";
-import Footer from "./components/Footer.jsx";
+import { useState } from "react";
 import WorkerList from './components/pages/Worker/WorkerList.jsx'
 import AddWorker from './components/pages/Worker/AddWorker.jsx'
 import EditWorker from './components/pages/Worker/EditWorker.jsx'
@@ -14,26 +12,42 @@ import AddDesignation from './components/pages/Designation/AddDesignation.jsx'
 import EditDesignation from './components/pages/Designation/EditDesignation.jsx'
 import ViewDesignation from './components/pages/Designation/ViewDesignation.jsx'
 import ListDesignation from './components/pages/Designation/ListDesignation.jsx'
-import Dashboard from './components/pages/Dashboard/Dashboard.jsx'
+import Dashboard from './components/pages/Dashboard.jsx'
 import BasicTables from './components/pages/Basic Tables/basic tables.jsx'
 
+import Login from "./components/Login.jsx";
+import Register from "./components/Register.jsx";
+import Protected from './Auth/Protected.jsx';
+import Logout from './Auth/Logout.jsx';
 
 
 function App() {
+   const [ isSignedIn, setIsSignedIn ] = useState(()=> {
+    /* if you want, user will be logged in until they logout*/
+    //return localStorage.getItem("access_token") || false;
+    /* if you want, user will be logged when they close the browser*/
+    return sessionStorage.getItem("access_token") || false;
+  });
   return (
     
     <BrowserRouter>
-      <Sidebar />
-      <div className="main-wrapper">
-        <Header />
 
         <Routes>
-          <Route index element={<Dashboard />} />
-          <Route path="workers" element={<WorkerList />} />
-          <Route path="workers Management/add" element={<AddWorker />} />
-          <Route path="workers Management/edit/:id" element={<EditWorker />} />
-          <Route path="workers Management/view/:id" element={<ViewWorker />} />
           
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/logout" element={<Logout />} />
+
+          <Route element={<Protected isSignedIn={isSignedIn} />}>
+            <Route index element={<Dashboard />} />
+
+            <Route path="workers">
+              <Route index element={<WorkerList />} />
+              <Route path="create" element={<AddWorker />} />
+              <Route path="edit/:id" element={<EditWorker />} />
+              <Route path="view/:id" element={<ViewWorker />} />
+            </Route>
+          </Route>
         </Routes>
         <Routes>
           <Route path="salary" element={<SalaryList />} />
@@ -55,9 +69,6 @@ function App() {
         <Routes>
           <Route path="basic-tables" element={<BasicTables />} />
         </Routes>
-      
-        <Footer />
-      </div>
       
       
 

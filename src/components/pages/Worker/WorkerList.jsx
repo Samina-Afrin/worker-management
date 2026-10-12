@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import AddWorker from "./AddWorker";
 import EditWorker from "./EditWorker";
 import ViewWorker from "./ViewWorker";
+import Layout from "../../Layout";
 
 const WorkerList = () => {
   const [workers, setWorkers] = useState([
@@ -123,6 +124,7 @@ const WorkerList = () => {
   };
 
   return (
+    <Layout>
     <div className="container-fluid py-4">
 
       {/* Header */}
@@ -297,32 +299,8 @@ const WorkerList = () => {
         </div>
       </div>
 
-      {/* Add Worker */}
-      {showAdd && (
-        <AddWorker
-          onAdd={handleAddWorker}
-          onClose={() => setShowAdd(false)}
-        />
-      )}
-
-      {/* Edit Worker */}
-      {editWorker && (
-        <EditWorker
-          worker={editWorker}
-          onUpdate={handleUpdateWorker}
-          onClose={() => setEditWorker(null)}
-        />
-      )}
-
-      {/* View Worker */}
-      {viewWorker && (
-        <ViewWorker
-          worker={viewWorker}
-          onClose={() => setViewWorker(null)}
-        />
-      )}
-
     </div>
+    </Layout>
   );
 };
 

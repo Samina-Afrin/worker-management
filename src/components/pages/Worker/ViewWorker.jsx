@@ -1,10 +1,12 @@
 
 import React from "react";
+import Layout from "../../Layout";
 
 const ViewWorker = ({ worker, onClose }) => {
   if (!worker) return null;
 
   return (
+    <Layout>
     <div
       className="modal d-block"
       tabIndex="-1"
@@ -133,6 +135,7 @@ const ViewWorker = ({ worker, onClose }) => {
         </div>
       </div>
     </div>
+    </Layout>
   );
 };
 

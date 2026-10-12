@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Layout from "../../Layout";
 
 const AddWorker = ({ onAdd, onClose }) => {
 
@@ -30,6 +31,7 @@ const AddWorker = ({ onAdd, onClose }) => {
   };
 
   return (
+    <Layout>
     <div
       className="modal d-block"
       style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
@@ -257,6 +259,7 @@ const AddWorker = ({ onAdd, onClose }) => {
       </div>
 
     </div>
+    </Layout>
   );
 };
 
