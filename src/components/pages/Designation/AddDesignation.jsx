@@ -1,152 +1,154 @@
 
-import { useState } from "react";
-import { Link } from "react-router";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router";
+import Layout from "../../Layout";
+import axios from "../../../Lib/axios";
 
-function AddDesignation() {
-  const [designation, setDesignation] = useState({
+const Adddesignation = () => {
+  const { id } = useParams();
+
+  const [formData, setFormData] = useState({
     name: "",
-    description: "",
-    basicSalary: "",
-    status: "Active",
   });
 
+  const [loading, setLoading] = useState(false);
+
+
+  // Fetch Designation for Update
+  async function fetchDesignation() {
+    try {
+      const res = await axios.get("designation/single.php?id=" + id);
+
+      const designationData = Array.isArray(res?.data?.data)
+        ? res.data.data[0]
+        : res?.data?.data;
+
+      if (designationData) {
+        setFormData({
+          name: designationData.name || "",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch designation:", error);
+    }
+  }
+
+  useEffect(() => {
+    if (id) {
+      fetchDesignation();
+    }
+  }, [id]);
+
+  // Handle Input Change
   const handleChange = (e) => {
-    setDesignation({
-      ...designation,
+    setFormData({
+      ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleSubmit = (e) => {
+  // Submit Form
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    console.log("Designation Added:", designation);
+    const data = new FormData();
+    data.append("name", formData.name);
 
-    alert("Designation added successfully!");
+    try {
+      const url = id
+        ? "designation/update.php?id=" + id
+        : "designation/create.php";
+
+      const res = await axios.post(url, data);
+
+      if (
+        res?.data?.status === true ||
+        res?.data?.status === "success" ||
+        res?.data?.status === 1
+      ) {
+        window.location.href = "/designation";
+      } else {
+        alert(res?.data?.message || "Failed to save designation.");
+      }
+    } catch (error) {
+      console.error("Designation save failed:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message;
+      alert(`Failed to save designation: ${message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
-      <section className="hero shop-hero">
-        <div className="container">
-          <div className="row justify-content-between">
-            <div className="col-lg-5">
-              <div className="intro-excerpt">
-                <h1>Add Designation</h1>
-              </div>
-            </div>
+    <Layout>
+      <div className="container mt-4">
+        <div className="card shadow-sm">
+          <div className="card-header bg-white py-3">
+            <h5 className="mb-0">
+              <i className="bi bi-person-badge me-2"></i>
+              {id ? "Update Designation" : "Add New Designation"}
+            </h5>
           </div>
-        </div>
-      </section>
 
-      <section className="product-section before-footer-section">
-        <div className="container">
-
-          <div className="card shadow-sm">
+          <form onSubmit={handleSubmit}>
             <div className="card-body">
+              <div className="row g-3">
 
-              <form onSubmit={handleSubmit}>
-
-                <div className="row g-3">
-
+                {/* ID */}
+                {id && (
                   <div className="col-md-6">
-                    <label className="form-label">
-                      Designation Name
-                    </label>
-
+                    <label className="form-label">ID</label>
                     <input
                       type="text"
-                      name="name"
                       className="form-control"
-                      placeholder="Enter designation name"
-                      value={designation.name}
-                      onChange={handleChange}
-                      required
+                      value={id}
+                      readOnly
                     />
                   </div>
+                )}
 
-                  <div className="col-md-6">
-                    <label className="form-label">
-                      Basic Salary
-                    </label>
+                {/* Designation Name */}
+                <div className="col-md-6">
+                  <label className="form-label">
+                    Designation Name
+                  </label>
 
-                    <input
-                      type="number"
-                      name="basicSalary"
-                      className="form-control"
-                      placeholder="Enter basic salary"
-                      value={designation.basicSalary}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-12">
-                    <label className="form-label">
-                      Description
-                    </label>
-
-                    <textarea
-                      name="description"
-                      className="form-control"
-                      rows="4"
-                      placeholder="Enter designation description"
-                      value={designation.description}
-                      onChange={handleChange}
-                    ></textarea>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">
-                      Status
-                    </label>
-
-                    <select
-                      name="status"
-                      className="form-select"
-                      value={designation.status}
-                      onChange={handleChange}
-                    >
-                      <option value="Active">
-                        Active
-                      </option>
-
-                      <option value="Inactive">
-                        Inactive
-                      </option>
-                    </select>
-                  </div>
-
+                  <input
+                    type="text"
+                    name="name"
+                    className="form-control"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                 />
                 </div>
 
-                <div className="mt-4 d-flex gap-2">
-
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                  >
-                    <i className="bi bi-save me-2"></i>
-                    Save Designation
-                  </button>
-
-                  <Link
-                    to="/designation"
-                    className="btn btn-secondary"
-                  >
-                    Cancel
-                  </Link>
-
-                </div>
-
-              </form>
-
+              </div>
             </div>
-          </div>
 
+            <div className="card-footer bg-white text-end">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                <i className="bi bi-save me-2"></i>
+                {loading
+                  ? "Saving..."
+                  : id
+                  ? "Update Designation"
+                  : "Save Designation"}
+              </button>
+            </div>
+          </form>
         </div>
-      </section>
-    </>
+      </div>
+    </Layout>
   );
-}
+};
 
-export default AddDesignation;
+export default Adddesignation;

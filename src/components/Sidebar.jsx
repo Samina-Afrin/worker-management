@@ -43,13 +43,13 @@ function Sidebar() {
             <li className="sidebar-menu-item">
                 <NavLink to="/workers" className="sidebar-menu-link" id="menu-uibuttons" title="Buttons">
                 <i className="bi bi-person-workspace"></i>
-                <span>Worker Management</span>
+                <span>Worker</span>
                 </NavLink>
             </li>
             <li className="sidebar-menu-item">
-                <NavLink to="/Designation" className="sidebar-menu-link" id="menu-uiforms" title="Designation">
+                <NavLink to="/designation" className="sidebar-menu-link" id="menu-uiforms" title="designation">
                 <i className="bi bi-person-badge"></i>
-                <span>Designation</span>
+                <span>designation</span>
                 </NavLink>
             </li>
             <li className="sidebar-menu-item">
@@ -59,16 +59,10 @@ function Sidebar() {
                 </NavLink>
             </li>
               <li className="sidebar-menu-item">
-                <a href="page-blank.html" className="sidebar-menu-link" id="menu-blankpage" title="Blank Page">
+                <NavLink to="/attendance" className="sidebar-menu-link" id="menu-blankpage" title="attendance">
                 <i className="bi bi-clock-fill"></i>
                 <span>Attendance</span>
-                </a>
-            </li>
-             <li className="sidebar-menu-item">
-                <a href="page-login.html" className="sidebar-menu-link" id="menu-loginpage" title="Login Page">
-                <i className="bi bi-box-arrow-in-right"></i>
-                <span>Login Screen</span>
-                </a>
+                </NavLink>
             </li>
             </ul>
         </div>
