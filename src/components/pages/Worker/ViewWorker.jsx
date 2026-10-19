@@ -2,6 +2,10 @@
 import React from "react";
 import { useParams } from "react-router";
 import Layout from "../../Layout";
+import axios from "../../../Lib/axios";
+
+
+
 
 const ViewWorker = () => {
   
@@ -83,14 +87,14 @@ const ViewWorker = () => {
               <div className="col-md-6">
                 <div className="border rounded p-3">
                   <small className="text-muted">Department</small>
-                  <h6 className="mb-0">{worker.department}</h6>
+                  <h6 className="mb-0">{worker.department_id}</h6>
                 </div>
               </div>
 
               <div className="col-md-6">
                 <div className="border rounded p-3">
                   <small className="text-muted">Designation</small>
-                  <h6 className="mb-0">{worker.designation}</h6>
+                  <h6 className="mb-0">{worker.designation_id}</h6>
                 </div>
               </div>
 

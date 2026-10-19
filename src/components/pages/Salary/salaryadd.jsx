@@ -1,303 +1,240 @@
-
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import Layout from "../../Layout";
 import axios from "../../../Lib/axios";
 
+const localDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const today = new Date();
+const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
 const Salaryadd = () => {
-  const { id } = useParams();
-
+  const navigate = useNavigate();
+  const [fromDate, setFromDate] = useState(localDate(firstOfMonth));
+  const [toDate, setToDate] = useState(localDate(today));
+  const [paymentStatus, setPaymentStatus] = useState("Pending");
   const [workers, setWorkers] = useState([]);
-
-  const [formData, setFormData] = useState({
-    worker_id: "",
-    month: "",
-    year: new Date().getFullYear(),
-    basic_salary: "",
-    present_days: "",
-    absent_days: "",
-    deduction: "0",
-    net_salary: "0",
-    payment_status: "Pending",
-  });
-
   const [loading, setLoading] = useState(false);
-
-  // Fetch Workers
-  async function fetchWorkers() {
-    try {
-      const res = await axios.get("workers/index.php");
-      setWorkers(res?.data?.data || []);
-    } catch (error) {
-      console.error("Failed to fetch workers:", error);
-    }
-  }
-
-  // Fetch Salary for Update
-  async function fetchSalary() {
-    try {
-      const res = await axios.get("salary/single.php?id=" + id);
-
-      const salaryData = Array.isArray(res?.data?.data)
-        ? res.data.data[0]
-        : res?.data?.data;
-
-      if (salaryData) {
-        setFormData((prev) => ({
-          ...prev,
-          ...salaryData,
-        }));
-      }
-    } catch (error) {
-      console.error("Failed to fetch salary:", error);
-    }
-  }
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const dateRangeValid = Boolean(fromDate && toDate && fromDate <= toDate);
 
   useEffect(() => {
-    fetchWorkers();
+    if (!dateRangeValid) return;
 
-    if (id) {
-      fetchSalary();
-    }
-  }, [id]);
+    let active = true;
+    const loadEligibleWorkers = async () => {
+      setLoading(true);
+      setError("");
 
-  // Handle Input Change
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+      try {
+        const response = await axios.get(
+          `salary/preview.php?from_date=${encodeURIComponent(fromDate)}&to_date=${encodeURIComponent(toDate)}`
+        );
+        if (!active) return;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+        if (response?.data?.status !== true) {
+          throw new Error(response?.data?.message || "Could not load salary preview.");
+        }
+        setWorkers(Array.isArray(response.data.data) ? response.data.data : []);
+      } catch (loadError) {
+        if (!active) return;
+        console.error("Failed to load salary preview:", loadError);
+        setWorkers([]);
+        setError(
+          loadError.response?.data?.message ||
+            loadError.response?.data?.error ||
+            loadError.message ||
+            "Could not load salary preview."
+        );
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
 
-  // Calculate Net Salary
-  const netSalary = Math.max(
-    0,
-    Number(formData.basic_salary || 0) -
-      Number(formData.deduction || 0)
+    loadEligibleWorkers();
+    return () => {
+      active = false;
+    };
+  }, [dateRangeValid, fromDate, toDate]);
+
+  const totalDays = workers.reduce(
+    (total, worker) => total + Number(worker.present_days || 0),
+    0
   );
+  const totalSalary = workers.reduce(
+    (total, worker) => total + Number(worker.net_salary || 0),
+    0
+  );
+  const formatMoney = (amount) => Number(amount || 0).toLocaleString("en-BD", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
-  // Submit Form
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
 
-    const data = new FormData();
+    if (!fromDate || !toDate || fromDate > toDate) {
+      setError("Select a valid date range.");
+      return;
+    }
+    if (workers.length === 0) {
+      setError("There are no unpaid present days to save in this date range.");
+      return;
+    }
 
-    Object.entries(formData).forEach(([key, value]) => {
-      data.append(key, value ?? "");
-    });
-
-    data.set("net_salary", String(netSalary));
-
+    setSaving(true);
     try {
-      const url = id
-        ? "salary/update.php?id=" + id
-        : "salary/create.php";
+      const data = new FormData();
+      data.append("from_date", fromDate);
+      data.append("to_date", toDate);
+      data.append("payment_status", paymentStatus);
 
-      await axios.post(url, data);
-
-      //window.location.href = "/salary";
-    } catch (error) {
-      console.error("Salary save failed:", error);
-      alert("Failed to save salary. Please check your API.");
+      const response = await axios.post("salary/create.php", data);
+      if (response?.data?.status !== true) {
+        throw new Error(response?.data?.message || "Salary could not be saved.");
+      }
+      navigate("/salary");
+    } catch (saveError) {
+      console.error("Salary save failed:", saveError);
+      setError(
+        saveError.response?.data?.message ||
+          saveError.response?.data?.error ||
+          saveError.message ||
+          "Failed to save salary."
+      );
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   return (
     <Layout>
-      <div className="container mt-4">
+      <div className="container-fluid mt-4">
         <div className="card shadow-sm">
           <div className="card-header bg-white py-3">
             <h5 className="mb-0">
               <i className="bi bi-cash-stack me-2"></i>
-              {id ? "Update Salary" : "Add New Salary"}
+              Create Daily Salaries
             </h5>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="card-body">
-              <div className="row g-3">
+              {error && <div className="alert alert-danger">{error}</div>}
 
-                {/* Worker */}
-                <div className="col-md-6">
-                  <label className="form-label">Worker Name</label>
+              <div className="row g-3 mb-4">
+                <div className="col-md-4">
+                  <label className="form-label" htmlFor="from-date">From date</label>
+                  <input
+                    id="from-date"
+                    type="date"
+                    className="form-control"
+                    value={fromDate}
+                    max={toDate}
+                    onChange={(event) => {
+                      setWorkers([]);
+                      setLoading(false);
+                      setError("");
+                      setFromDate(event.target.value);
+                    }}
+                    required
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label" htmlFor="to-date">To date</label>
+                  <input
+                    id="to-date"
+                    type="date"
+                    className="form-control"
+                    value={toDate}
+                    min={fromDate}
+                    onChange={(event) => {
+                      setWorkers([]);
+                      setLoading(false);
+                      setError("");
+                      setToDate(event.target.value);
+                    }}
+                    required
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label" htmlFor="payment-status">Payment status</label>
                   <select
-                    name="worker_id"
+                    id="payment-status"
                     className="form-select"
-                    value={formData.worker_id}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select Worker</option>
-                    {workers.map((worker) => (
-                      <option key={worker.id} value={worker.id}>
-                        {worker.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Month */}
-                <div className="col-md-6">
-                  <label className="form-label">Salary Month</label>
-                  <select
-                    name="month"
-                    className="form-select"
-                    value={formData.month}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select Month</option>
-                    {[
-                      "January",
-                      "February",
-                      "March",
-                      "April",
-                      "May",
-                      "June",
-                      "July",
-                      "August",
-                      "September",
-                      "October",
-                      "November",
-                      "December",
-                    ].map((month, index) => (
-                      <option key={month} value={index + 1}>
-                        {month}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Year */}
-                <div className="col-md-6">
-                  <label className="form-label">Year</label>
-                  <input
-                    type="number"
-                    name="year"
-                    className="form-control"
-                    value={formData.year}
-                    onChange={handleChange}
-                    min="2000"
-                    max="2100"
-                    required
-                  />
-                </div>
-
-                {/* Basic Salary */}
-                <div className="col-md-6">
-                  <label className="form-label">Basic Salary (৳)</label>
-                  <input
-                    type="number"
-                    name="basic_salary"
-                    className="form-control"
-                    value={formData.basic_salary}
-                    onChange={handleChange}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-
-                {/* Present Days */}
-                <div className="col-md-6">
-                  <label className="form-label">Present Days</label>
-                  <input
-                    type="number"
-                    name="present_days"
-                    className="form-control"
-                    value={formData.present_days}
-                    onChange={handleChange}
-                    min="0"
-                    max="31"
-                    required
-                  />
-                </div>
-
-                {/* Absent Days */}
-                <div className="col-md-6">
-                  <label className="form-label">Absent Days</label>
-                  <input
-                    type="number"
-                    name="absent_days"
-                    className="form-control"
-                    value={formData.absent_days}
-                    onChange={handleChange}
-                    min="0"
-                    max="31"
-                    required
-                  />
-                </div>
-
-                {/* Deduction */}
-                <div className="col-md-6">
-                  <label className="form-label">Deduction (৳)</label>
-                  <input
-                    type="number"
-                    name="deduction"
-                    className="form-control"
-                    value={formData.deduction}
-                    onChange={handleChange}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-
-                {/* Net Salary */}
-                <div className="col-md-6">
-                  <label className="form-label">Net Salary (৳)</label>
-                  <input
-                    type="number"
-                    name="net_salary"
-                    className="form-control"
-                    value={netSalary}
-                    readOnly
-                  />
-                </div>
-
-                {/* Payment Status */}
-                <div className="col-md-6">
-                  <label className="form-label">Payment Status</label>
-                  <select
-                    name="payment_status"
-                    className="form-select"
-                    value={formData.payment_status}
-                    onChange={handleChange}
-                    required
+                    value={paymentStatus}
+                    onChange={(event) => setPaymentStatus(event.target.value)}
                   >
                     <option value="Pending">Pending</option>
                     <option value="Paid">Paid</option>
                   </select>
                 </div>
-
-                {/* Salary Summary */}
-                <div className="col-12">
-                  <div className="alert alert-info mb-0">
-                    <strong>Net Salary: </strong>
-                    ৳ {netSalary.toLocaleString("en-BD")}
-                  </div>
-                </div>
-
               </div>
+
+              <div className="table-responsive">
+                <table className="table table-hover align-middle">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Worker</th>
+                      <th>Basic monthly salary</th>
+                      <th>Eligible present days</th>
+                      <th>Daily salary total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr><td colSpan="4" className="text-center py-4">Loading attendance and salary preview...</td></tr>
+                    ) : workers.length ? (
+                      workers.map((worker) => (
+                        <tr key={worker.worker_id}>
+                          <td>{worker.worker_name}</td>
+                          <td>৳ {formatMoney(worker.basic_salary)}</td>
+                          <td>{worker.present_days}</td>
+                          <td className="text-success fw-semibold">৳ {formatMoney(worker.net_salary)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="text-center text-muted py-4">
+                          {!dateRangeValid
+                            ? "The start date must be on or before the end date."
+                            : "No eligible present days found for this date range."}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                  {dateRangeValid && workers.length > 0 && (
+                    <tfoot className="table-light">
+                      <tr>
+                        <th colSpan="2">Total</th>
+                        <th>{totalDays} worker-days</th>
+                        <th>৳ {formatMoney(totalSalary)}</th>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+
+              <p className="small text-muted mb-0">
+                Daily salary is calculated from each worker&apos;s monthly basic salary divided by the number of calendar days in that attendance month. Dates that already have a salary record are excluded.
+              </p>
             </div>
 
             <div className="card-footer bg-white text-end">
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading}
+                disabled={loading || saving || workers.length === 0}
               >
                 <i className="bi bi-save me-2"></i>
-                {loading
-                  ? "Saving..."
-                  : id
-                  ? "Update Salary"
-                  : "Save Salary"}
+                {saving ? "Saving..." : "Save daily salaries"}
               </button>
             </div>
           </form>

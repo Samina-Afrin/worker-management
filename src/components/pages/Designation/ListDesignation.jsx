@@ -14,7 +14,7 @@ const Listdesignation = () => {
     try {
       setLoading(true);
 
-      const res = await axios.get("designation/index.php");
+      const res = await axios.get("designations/index.php");
 
       setDesignations(res?.data?.data || []);
     } catch (error) {

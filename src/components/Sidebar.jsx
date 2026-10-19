@@ -67,6 +67,7 @@ function Sidebar() {
             </ul>
         </div>
         </div>
+        
 
         
         <div className="sidebar-profile">

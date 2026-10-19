@@ -18,10 +18,11 @@ const Viewattendance = () => {
         setError("");
 
         const res = await axios.get(
-          `attendance/single.php?id=${id}`
+          `attendances/single.php?id=${id}`
         );
 
-        const data = res?.data?.data;
+        const raw = res?.data?.data;
+const data = Array.isArray(raw) ? raw[0] : raw;
 
         if (res?.data?.status && data) {
           setAttendance(data);
