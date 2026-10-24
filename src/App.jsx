@@ -16,8 +16,8 @@ import Addattendance from './components/pages/attendance/Addattendance.jsx'
 import Viewattendance from './components/pages/attendance/Viewattendance.jsx'
 import Listattendance from './components/pages/attendance/Listattendance.jsx'
 import Editattendance from "./components/pages/attendance/Editattendance.jsx";
+import Report from "./components/pages/report/report.jsx";
 import Dashboard from './components/pages/Dashboard.jsx'
-import BasicTables from './components/pages/Basic Tables/basic tables.jsx'
 
 
 import Login from "./components/Login.jsx";
@@ -77,16 +77,17 @@ function App() {
           <Route path="attendance/View/:id" element={<Viewattendance />} />
            <Route path="attendance/Edit/:id" element={<Editattendance />} />
         </Routes>
+        <Routes>
+          <Route path="report" element={<Report />} />
+        </Routes>
 
-
+        
+         
        
         <Routes>
           <Route path="dashboard" element={<Dashboard />} />
         </Routes>
-        <Routes>
-          <Route path="basic-tables" element={<BasicTables />} />
-        </Routes>
-      
+        
       
 
     </BrowserRouter>

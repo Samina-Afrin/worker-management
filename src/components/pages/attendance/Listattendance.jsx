@@ -261,7 +261,6 @@ const Listattendance = () => {
                   <tr>
                     <th>ID</th>
                     <th>Worker</th>
-                    <th>Worker ID</th>
                     <th>Date</th>
                     <th>In Time</th>
                     <th>Out Time</th>
@@ -293,12 +292,8 @@ const Listattendance = () => {
                         <td>{item.id}</td>
 
                         <td>
-                          {item.worker_name ||
-                            item.name ||
-                            `Worker #${item.worker_id}`}
+                          {item.name} - {item.phone}
                         </td>
-
-                        <td>{item.worker_id || "-"}</td>
 
                         <td>
                           {item.date

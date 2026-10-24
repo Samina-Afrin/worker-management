@@ -23,19 +23,7 @@ function Sidebar() {
         </div>
 
         
-        <div className="sidebar-menu-section">
-            <div className="sidebar-menu-title">Components</div>
-            <ul className="sidebar-menu-list">
-            <li className="sidebar-menu-item">
-                <NavLink to="/basic-tables" className="sidebar-menu-link" id="menu-basictables" title="Basic Tables">
-                <i className="bi bi-table"></i>
-                <span>Basic Tables</span>
-                </NavLink>
-            </li>
-           
-            </ul>
-        </div>
-
+        
         
         <div className="sidebar-menu-section">
             <div className="sidebar-menu-title">Pages</div>
@@ -64,6 +52,14 @@ function Sidebar() {
                 <span>Attendance</span>
                 </NavLink>
             </li>
+             <li className="sidebar-menu-item">
+                <NavLink to="/report" className="sidebar-menu-link" id="menu-blankpage" title="report">
+                <i className="bi bi-file-earmark-bar-graph-fill"></i>
+                <span>Report</span>
+                </NavLink>
+            </li>
+
+              
             </ul>
         </div>
         </div>

@@ -1,5 +1,6 @@
 
 import React from "react";
+import {Link} from 'react-router';
 
 const Header = () => {
   return (
@@ -260,13 +261,13 @@ const Header = () => {
               </li>
 
               <li>
-                <a
+                <Link
                   className="dropdown-item text-danger"
-                  href="page-login.html">
+                  to="/logout">
                 
                   <i className="bi bi-box-arrow-right"></i>
                   <span>Logout</span>
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
