@@ -119,8 +119,8 @@ const Salaryview = () => {
 <body>
   <article class="payslip">
     <header class="header">
-      <h1 class="company">Your Company Name</h1>
-      <p class="company-detail">Company Address, City, Bangladesh</p>
+      <h1 class="company">Work Nest Bangladesh</h1>
+      <p class="company-detail">2no Gate, Chattogram Bangladesh</p>
       <div class="document-title">SALARY PAYSLIP</div>
       <p class="document-subtitle">Confidential employee payroll statement</p>
     </header>

@@ -4,8 +4,8 @@ import Layout from "../../Layout";
 import axios from "../../../Lib/axios";
 
 // Ekhane tomar company-r nam o address likho
-const COMPANY_NAME = "Your Company Name";
-const COMPANY_ADDRESS = "Company Address, City, Bangladesh";
+const COMPANY_NAME = "Work Nest Bangladesh";
+const COMPANY_ADDRESS = "2no Gate, Chattogram Bangladesh";
 
 const localDate = (date) => {
   const year = date.getFullYear();

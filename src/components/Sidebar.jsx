@@ -29,7 +29,7 @@ function Sidebar() {
             <div className="sidebar-menu-title">Pages</div>
             <ul className="sidebar-menu-list">
             <li className="sidebar-menu-item">
-                <NavLink to="/workers" className="sidebar-menu-link" id="menu-uibuttons" title="Buttons">
+                <NavLink to="/workers" className="sidebar-menu-link" id="menu-uibuttons" title="worker">
                 <i className="bi bi-person-workspace"></i>
                 <span>Worker</span>
                 </NavLink>
@@ -40,18 +40,20 @@ function Sidebar() {
                 <span>designation</span>
                 </NavLink>
             </li>
-            <li className="sidebar-menu-item">
-                <NavLink to="/salary" className="sidebar-menu-link" id="menu-404" title="404 Page">
-                <i className="bi bi-cash-stack"></i>
-                <span>Salary</span>
-                </NavLink>
-            </li>
-              <li className="sidebar-menu-item">
+
+             <li className="sidebar-menu-item">
                 <NavLink to="/attendance" className="sidebar-menu-link" id="menu-blankpage" title="attendance">
                 <i className="bi bi-clock-fill"></i>
                 <span>Attendance</span>
                 </NavLink>
             </li>
+            <li className="sidebar-menu-item">
+                <NavLink to="/salary" className="sidebar-menu-link" id="menu-404" title="salary">
+                <i className="bi bi-cash-stack"></i>
+                <span>Salary</span>
+                </NavLink>
+            </li>
+             
              <li className="sidebar-menu-item">
                 <NavLink to="/report" className="sidebar-menu-link" id="menu-blankpage" title="report">
                 <i className="bi bi-file-earmark-bar-graph-fill"></i>
