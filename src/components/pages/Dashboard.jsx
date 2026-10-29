@@ -1,345 +1,394 @@
 
-import React from "react";
-import Layout from "../Layout";
+import React, { useEffect, useState } from "react";
+import Layout from "../Layout.jsx";
+import axios from "../../Lib/axios";
 
 const Dashboard = () => {
-  return (
-     <Layout>
-     
-    <div className="page-header">
-      <div>
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">A smarter way to manage workers, attendance, and salaries..</p>
-      </div>
-      <button className="btn-date-picker" type="button" id="date-picker-trigger">
-        <i className="bi bi-calendar4-event"></i>
-        <span id="selected-date-range">January 1, 2026 - January 23, 2026</span>
-        <i className="bi bi-chevron-down ms-1"></i>
-      </button>
-    </div>
-    <div className="row g-4">
-      <div className="col-12">
-        <div className="row g-4">
-          <div className="col-md-4">
-            <div className="card alert-green-card">
-              <div className="position-relative z-index-2">
-                <span className="alert-green-badge">Update</span>
-                <div className="alert-green-date">Feb 14th 2026</div>
-                <div className="alert-green-text">Worker attendance updated successfullys</div>
-              </div>
-              <a href="#" className="alert-green-link z-index-2" id="alert-link-statistics">
-                <span>See Statistics</span>
-                <i className="bi bi-arrow-right"></i>
-              </a>
+  const [workers, setWorkers] = useState([]);
+  const [attendance, setAttendance] = useState([]);
+  const [salaries, setSalaries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-              <svg className="alert-green-bg-shape" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g transform="translate(50,50)">
-                  <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" />
-                  <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" transform="rotate(60)" />
-                  <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" transform="rotate(120)" />
-                </g>
-              </svg>
-            </div>
-          </div>
+  const today = new Date();
+  const todayString = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
 
-          <div className="col-md-4">
-            <div className="card card-stat d-flex flex-column justify-content-between">
-              <div>
-                <div className="card-header">
-                  <span className="stat-label">Total Workers</span>
-                  <div className="dropdown">
-                    <button className="card-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                      aria-label="More Options" id="btn-more-income">
-                      <i className="bi bi-three-dots"></i>
-                    </button>
-                    <ul className="dropdown-menu dropdown-menu-end dropdown-menu-custom">
-                      <li><a className="dropdown-item" href="#"><i className="bi bi-arrow-repeat"></i> Refresh</a></li>
-                      <li><a className="dropdown-item" href="#"><i className="bi bi-file-earmark-arrow-down"></i> Export Worker List</a></li>
-                      <li>
-                        <hr className="dropdown-divider"/>
-                      </li>
-                      <li><a className="dropdown-item text-danger" href="#"><i className="bi bi-eye-slash"></i> Hide Details</a>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="stat-value">120</div>
-                <div className="trend-badge trend-up">
-                  <i className="bi bi-arrow-up-right"></i>
-                  <span>+10 workers this month</span>
-                </div>
-              </div>
-              <div className="sparkline-container sparkline-card-footer">
-                <div id="income-sparkline"></div>
-              </div>
-            </div>
-          </div>
+  const currentMonth = todayString.slice(0, 7);
 
-          <div className="col-md-4">
-            <div className="card card-stat d-flex flex-column justify-content-between">
-              <div>
-                <div className="card-header">
-                  <span className="stat-label">Total Late</span>
-                  <div className="dropdown">
-                    <button className="card-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                      aria-label="More Options" id="btn-more-return">
-                      <i className="bi bi-three-dots"></i>
-                    </button>
-                    <ul className="dropdown-menu dropdown-menu-end dropdown-menu-custom">
-                      <li><a className="dropdown-item" href="#"><i className="bi bi-arrow-repeat"></i> Refresh</a></li>
-                      <li><a className="dropdown-item" href="#"><i className="bi bi-file-earmark-arrow-down"></i> Export Attendance Report</a></li>
-                      <li>
-                        <hr className="dropdown-divider"/>
-                      </li>
-                      <li><a className="dropdown-item text-danger" href="#"><i className="bi bi-eye-slash"></i> Hide Details</a>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="stat-value">4</div>
-                <div className="trend-badge trend-down">
-                  <i className="bi bi-arrow-down-left"></i>
-                  <span>2 fewer than yesterday</span>
-                </div>
-              </div>
-              <div className="sparkline-container sparkline-card-footer">
-                <div id="return-sparkline"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="col-xl-9 col-lg-8">
-        <div className="row g-4">
-          <div className="col-12">
-            <div className="card mb-0">
-              <div className="card-header mb-2">
-                <h2 className="card-title">Attendance Overview</h2>
-                <div className="d-flex gap-3 align-items-center">
-                  <div className="chart-legend-item">
-                    <span className="legend-dot bg-forest-medium"></span>
-                    <span className="chart-legend-label">Present</span>
-                  </div>
-                  <div className="chart-legend-item">
-                    <span className="legend-dot bg-lime-accent"></span>
-                    <span className="chart-legend-label">Absent</span>
-                  </div>
-                </div>
-              </div>
-              <div className="d-flex align-items-baseline gap-2 mb-3">
-                <span className="stat-value-amount">120 Workers</span>
-                <span className="trend-badge trend-up fs-xs">Monthly Attendance </span>
-              </div>
-              <div id="revenue-chart"></div>
-            </div>
-          </div>
-          
-          <div className="col-md-7 d-flex flex-column">
-            <div className="card h-100 flex-grow-1">
-              <div className="card-header">
-                <h2 className="card-title">Recent Activities</h2>
-                <div className="dropdown">
-                  <button className="card-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                    aria-label="More Options" id="btn-more-transaction">
-                    <i className="bi bi-three-dots"></i>
-                  </button>
-                  <ul className="dropdown-menu dropdown-menu-end dropdown-menu-custom">
-                    <li><a className="dropdown-item" href="#"><i className="bi bi-funnel"></i> Filter Status</a></li>
-                    <li><a className="dropdown-item" href="#"><i className="bi bi-file-earmark-arrow-down"></i> Export CSV</a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div className="transaction-list">
-                <div className="transaction-item">
-                  <div className="transaction-icon bg-forest-light text-lime">
-                    <i className="bi bi-person-plus-fill"></i>
-                  </div>
-                  <div className="transaction-info">
-                    <div className="transaction-name">New Worker Added</div>
-                    <div className="transaction-date">Feb 14, 2026 • 12:40 PM</div>
-                  </div>
-                  <div className="transaction-amount text-main">Paid</div>
-                </div>
+  // API response theke array ber kora
+  const getRows = (response) => {
+    const data = response?.data?.data ?? response?.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  };
 
-                <div className="transaction-item">
-                  <div className="transaction-icon bg-forest-light text-lime">
-                    <i className="bi bi-person-gear"></i>
-                  </div>
-                  <div className="transaction-info">
-                    <div className="transaction-name">Worker Information Updated</div>
-                    <div className="transaction-date">Feb 13, 2026 • 08:15 AM</div>
-                  </div>
-                  <div className="transaction-amount text-success">Updated</div>
-                </div>
+  const getDate = (item) =>
+    String(item?.date ?? item?.attendance_date ?? item?.salary_date ??
+      item?.payment_date ?? item?.created_at ?? item?.createdAt ?? "").slice(0, 10);
 
-                <div className="transaction-item">
-                  <div className="transaction-icon bg-forest-light text-lime">
-                    <i className="bi bi-card-list"></i>
-                  </div>
-                  <div className="transaction-info">
-                    <div className="transaction-name">New Designation Added</div>
-                    <div className="transaction-date">Feb 11, 2026 • 04:30 PM</div>
-                  </div>
-                  <div className="transaction-amount text-success">Added</div>
-                </div>
+  const getWorkerName = (item) =>
+    item?.worker_name ??
+    item?.name ??
+    item?.employee_name ??
+    item?.worker?.name ??
+    `Worker #${item?.worker_id ?? item?.id ?? ""}`;
 
-                <div className="transaction-item">
-                  <div className="transaction-icon bg-forest-light text-lime">
-                    <i className="bi bi-card-list"></i>
-                  </div>
-                  <div className="transaction-info">
-                    <div className="transaction-name">New Job Role Assigned</div>
-                    <div className="transaction-date">Feb 09, 2026 • 09:20 AM</div>
-                  </div>
-                  <div className="transaction-amount text-main"> Assigned</div>
-                </div>
-              </div>
+  const getSalaryAmount = (item) =>
+    Number(
+      item?.net_salary ??
+      item?.netSalary ??
+      item?.salary_amount ??
+      item?.amount ??
+      item?.basic_salary ??
+      item?.basicSalary ??
+      0
+    ) || 0;
 
-            </div>
-          </div>
-          
-          <div className="col-md-5 d-flex flex-column">
-            <div className="card h-100 flex-grow-1">
-              <div className="card-header">
-                <h2 className="card-title">Salary Overview</h2>
-                <div className="dropdown">
-                  <button className="card-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                    aria-label="More Options" id="btn-more-products">
-                    <i className="bi bi-three-dots"></i>
-                  </button>
-                  <ul className="dropdown-menu dropdown-menu-end dropdown-menu-custom">
-                    <li><a className="dropdown-item" href="#"><i className="bi bi-plus-lg"></i> Add Salary</a></li>
-                    <li><a className="dropdown-item" href="#"><i className="bi bi-gear"></i> Manage Salaries</a></li>
-                  </ul>
-                </div>
-              </div>
+  const money = (amount) =>
+    "৳ " + Number(amount || 0).toLocaleString("en-BD", {
+      maximumFractionDigits: 2,
+    });
 
-              <div className="progress-container">
-                <div className="progress-label-row">
-                  <span className="progress-label">Salary Paid</span>
-                  <span className="progress-value">120</span>
-                </div>
-                <div className="progress" role="progressbar" aria-label="Salary Paid Progress" aria-valuenow="65"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div className="progress-bar bg-lime-accent w-65"></div>
-                </div>
-              </div>
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError("");
 
-              <div className="progress-container">
-                <div className="progress-label-row">
-                  <span className="progress-label">Salary Pending</span>
-                  <span className="progress-value">20</span>
-                </div>
-                <div className="progress" role="progressbar" aria-label="Salary Pending Progress" aria-valuenow="20"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div className="progress-bar bg-lime-accent opacity-50 w-50"></div>
-                </div>
-              </div>
+      try {
+        const results = await Promise.allSettled([
+          axios.get("workers/index.php"),
+          axios.get("attendance/index.php"),
+          axios.get("salary/index.php"),
+        ]);
 
-              <div className="progress-container">
-                <div className="progress-label-row">
-                  <span className="progress-label">Total salary Paid</span>
-                  <span className="progress-value">100</span>
-                </div>
-                <div className="progress" role="progressbar" aria-label="Salary Paid Progress" aria-valuenow="85"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div className="progress-bar bg-lime-accent w-85"></div>
-                </div>
-              </div>
+        const [workerResult, attendanceResult, salaryResult] = results;
 
-              <div className="progress-container">
-                <div className="progress-label-row">
-                  <span className="progress-label">Salary Deductions</span>
-                  <span className="progress-value">8</span>
-                </div>
-                <div className="progress" role="progressbar" aria-label="Salary Deductions Progress" aria-valuenow="10"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div className="progress-bar bg-brand-orange w-38"></div>
-                </div>
-              </div>
+        if (workerResult.status === "fulfilled") {
+          setWorkers(getRows(workerResult.value));
+        } else {
+          console.error("Workers API error:", workerResult.reason);
+        }
 
-              <div className="progress-container">
-                <div className="progress-label-row">
-                  <span className="progress-label">Total Salary Budget</span>
-                  <span className="progress-value">৳1,420,000</span>
-                </div>
-                <div className="progress" role="progressbar" aria-label="Total Salary Budget Progress" aria-valuenow="75"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div className="progress-bar bg-lime-accent w-75"></div>
-                </div>
-              </div>
+        if (attendanceResult.status === "fulfilled") {
+          setAttendance(getRows(attendanceResult.value));
+        } else {
+          console.error("Attendance API error:", attendanceResult.reason);
+        }
 
-              <div className="progress-container">
-                <div className="progress-label-row">
-                  <span className="progress-label">Bonus Distributed</span>
-                  <span className="progress-value">৳45,000</span>
-                </div>
-                <div className="progress" role="progressbar" aria-label="Bonus Distributed Progress" aria-valuenow="45"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div className="progress-bar bg-lime-accent opacity-50 w-45"></div>
-                </div>
-              </div>
-            </div>
+        if (salaryResult.status === "fulfilled") {
+          setSalaries(getRows(salaryResult.value));
+        } else {
+          console.error("Salary API error:", salaryResult.reason);
+        }
 
-          </div>
-        </div>
-        
+        if (results.every((result) => result.status === "rejected")) {
+          setError("Dashboard data load hoyni. API endpoint check koro.");
+        }
+      } catch (err) {
+        console.error("Dashboard error:", err);
+        setError("Dashboard data load korte problem hoyeche.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      </div>
-      
-      <div className="col-xl-3 col-lg-4">
-        <div className="right-panel-wrapper d-flex flex-column gap-4 h-100">
-          
-          <div className="card flex-grow-1 d-flex flex-column justify-content-between mb-0">
-            <div className="card-header mb-1">
-              <h2 className="card-title">Worker Performance Overview</h2>
-            </div>
+    fetchDashboardData();
+  }, []);
 
-            <div id="views-chart"></div>
-            
-            <div className="chart-legends-container">
-              <div className="chart-legend-item">
-                <span className="legend-dot bg-lime-accent"></span>
-                <span className="text-muted-green">Active Workers</span>
-              </div>
-              <div className="chart-legend-item">
-                <span className="legend-dot bg-forest-medium"></span>
-                <span className="text-muted-green">Inactive Workers</span>
-              </div>
-              <div className="chart-legend-item">
-                <span className="legend-dot bg-brand-orange"></span>
-                <span className="text-muted-green">New Workers</span>
-              </div>
-            </div>
-          </div>
+  // Worker statistics
+  const activeWorkers = workers.filter(
+    (worker) =>
+      String(worker.status ?? "").toLowerCase() === "active"
+  ).length;
 
-
-          <div className="promo-banner-card">
-            <svg className="promo-banner-bg-shape" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g transform="translate(50,50)">
-                <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" />
-                <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" transform="rotate(60)" />
-                <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" transform="rotate(120)" />
-              </g>
-            </svg>
-
-            <h3 className="promo-title">Level up your worker management to the next level.</h3>
-            <p className="promo-desc">An easy way to manage workers with care and precision.</p>
-            <button className="btn-promo" id="btn-promo-action">Check the updates now</button>
-          </div>
-        </div>
-      </div>
-      
-
-    </div>
-    
-
-     </Layout>
-     
+  // Today's attendance only
+  const todayAttendance = attendance.filter(
+    (item) => getDate(item) === todayString
   );
-}
+
+  const presentCount = todayAttendance.filter(
+    (item) => String(item.status ?? "").toLowerCase() === "present"
+  ).length;
+
+  const absentCount = todayAttendance.filter(
+    (item) => String(item.status ?? "").toLowerCase() === "absent"
+  ).length;
+
+  const lateCount = todayAttendance.filter(
+    (item) => String(item.status ?? "").toLowerCase() === "late"
+  ).length;
+
+  // Current month salary
+  const monthSalaries = salaries.filter((item) => {
+    const date = getDate(item);
+    const month = item?.month;
+
+    return (
+      date.startsWith(currentMonth) ||
+      (String(month ?? "").slice(0, 7) === currentMonth)
+    );
+  });
+
+  const monthlySalary = monthSalaries.reduce(
+    (total, item) => total + getSalaryAmount(item),
+    0
+  );
+
+  // Recent workers: latest IDs first
+  const recentWorkers = [...workers]
+    .sort((a, b) => Number(b.id ?? b.worker_id ?? 0) -
+      Number(a.id ?? a.worker_id ?? 0))
+    .slice(0, 5);
+
+  // Recent activity based on available database records
+  const recentActivities = [
+    ...workers.map((item) => ({
+      title: "Worker Record",
+      description: `${getWorkerName(item)} - worker information`,
+      date: getDate(item),
+      icon: "bi-person-plus-fill",
+      color: "success",
+    })),
+    ...todayAttendance.map((item) => ({
+      title: "Attendance Recorded",
+      description: `${getWorkerName(item)} - ${item.status ?? "Attendance"}`,
+      date: getDate(item),
+      icon: "bi-calendar-check-fill",
+      color: "primary",
+    })),
+    ...monthSalaries.map((item) => ({
+      title: "Salary Record",
+      description: `${getWorkerName(item)} - ${money(getSalaryAmount(item))}`,
+      date: getDate(item),
+      icon: "bi-cash-stack",
+      color: "info",
+    })),
+  ]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 5);
+
+  const stats = [
+    {
+      title: "Total Workers",
+      value: workers.length,
+      icon: "bi-people-fill",
+      color: "primary",
+    },
+    {
+      title: "Active Workers",
+      value: activeWorkers,
+      icon: "bi-person-check-fill",
+      color: "success",
+    },
+    {
+      title: "Today's Present",
+      value: presentCount,
+      icon: "bi-calendar-check-fill",
+      color: "info",
+    },
+    {
+      title: "Today's Absent",
+      value: absentCount,
+      icon: "bi-calendar-x-fill",
+      color: "danger",
+    },
+    {
+      title: "Today's Late",
+      value: lateCount,
+      icon: "bi-clock-fill",
+      color: "warning",
+    },
+    {
+      title: "Current Month Salary",
+      value: money(monthlySalary),
+      icon: "bi-cash-stack",
+      color: "success",
+    },
+  ];
+
+  const attendanceChart = [
+    { label: "Present", value: presentCount, color: "#198754" },
+    { label: "Absent", value: absentCount, color: "#dc3545" },
+    { label: "Late", value: lateCount, color: "#ffc107" },
+  ];
+
+  const maxAttendance = Math.max(
+    ...attendanceChart.map((item) => item.value),
+    1
+  );
+
+  return (
+    <Layout>
+      <div className="container-fluid py-3">
+        <div className="mb-4">
+          <h2>Worker Management Dashboard</h2>
+          <p className="text-muted">
+            Overview of workers, attendance and salary
+          </p>
+        </div>
+
+        {loading && (
+          <div className="alert alert-info">Loading dashboard data...</div>
+        )}
+
+        {error && (
+          <div className="alert alert-danger">{error}</div>
+        )}
+
+        {/* Statistics */}
+        <div className="row g-3">
+          {stats.map((item) => (
+            <div className="col-12 col-sm-6 col-xl-4" key={item.title}>
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="text-muted mb-2">{item.title}</p>
+                    <h3 className="mb-0">{loading ? "..." : item.value}</h3>
+                  </div>
+                  <div className={`text-${item.color} fs-1`}>
+                    <i className={`bi ${item.icon}`} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Attendance chart */}
+        <div className="card border-0 shadow-sm mt-4">
+          <div className="card-header bg-white py-3">
+            <h5 className="mb-0">Today's Attendance Overview</h5>
+          </div>
+
+          <div className="card-body">
+            <div
+              className="d-flex justify-content-around align-items-end gap-4"
+              style={{ height: "250px" }}
+            >
+              {attendanceChart.map((item) => (
+                <div
+                  key={item.label}
+                  className="d-flex flex-column align-items-center justify-content-end h-100 flex-fill"
+                >
+                  <strong className="mb-2">{item.value}</strong>
+                  <div
+                    title={`${item.label}: ${item.value}`}
+                    style={{
+                      width: "100%",
+                      maxWidth: "100px",
+                      height: `${(item.value / maxAttendance) * 170}px`,
+                      minHeight: "8px",
+                      backgroundColor: item.color,
+                      borderRadius: "6px 6px 0 0",
+                    }}
+                  />
+                  <span className="mt-2 text-muted">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent workers */}
+        <div className="card border-0 shadow-sm mt-4">
+          <div className="card-header bg-white py-3">
+            <h5 className="mb-0">Recent Workers</h5>
+          </div>
+
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Worker Name</th>
+                  <th>Department</th>
+                  <th>Designation</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {!loading && recentWorkers.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="text-center py-4">
+                      No workers found
+                    </td>
+                  </tr>
+                )}
+
+                {recentWorkers.map((worker, index) => (
+                  <tr key={worker.id ?? worker.worker_id ?? index}>
+                    <td>{getWorkerName(worker)}</td>
+                    <td>
+                      {worker.department_name ??
+                        worker.department?.name ??
+                        worker.department ??
+                        "-"}
+                    </td>
+                    <td>
+                      {worker.designation_name ??
+                        worker.designation?.name ??
+                        worker.designation ??
+                        "-"}
+                    </td>
+                    <td>
+                      <span
+                        className={`badge ${
+                          String(worker.status).toLowerCase() === "active"
+                            ? "bg-success"
+                            : "bg-secondary"
+                        }`}
+                      >
+                        {worker.status ?? "-"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Recent activities */}
+        <div className="card border-0 shadow-sm mt-4">
+          <div className="card-header bg-white py-3">
+            <h5 className="mb-0">Recent Activities</h5>
+          </div>
+
+          <div className="card-body">
+            {!loading && recentActivities.length === 0 && (
+              <p className="text-muted mb-0">No recent records found.</p>
+            )}
+
+            {recentActivities.map((activity, index) => (
+              <div
+                key={`${activity.title}-${index}`}
+                className="d-flex align-items-start gap-3 mb-4"
+              >
+                <div className={`text-${activity.color} fs-4`}>
+                  <i className={`bi ${activity.icon}`} />
+                </div>
+
+                <div className="flex-grow-1">
+                  <h6 className="mb-1">{activity.title}</h6>
+                  <p className="text-muted mb-1">
+                    {activity.description}
+                  </p>
+                  <small className="text-muted">
+                    {activity.date || "Date unavailable"}
+                  </small>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
 
 export default Dashboard;
