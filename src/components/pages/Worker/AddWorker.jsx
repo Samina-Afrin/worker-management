@@ -16,7 +16,7 @@ const AddWorker = () => {
     }
 
   async function fetchDesignation() {
-      const res= await axios.get('designation/index.php');
+      const res= await axios.get('designations/index.php');
                 setDesignation(res.data.data)
   }
   async function fetchWorker() {
