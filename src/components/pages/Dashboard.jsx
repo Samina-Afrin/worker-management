@@ -1,291 +1,216 @@
-
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
 import Layout from "../Layout.jsx";
 import axios from "../../Lib/axios";
 
-// Circle / Donut Chart
+/* ---------- Helpers ---------- */
+
+const getLocalDate = (date = new Date()) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+const normalize = (v) => String(v || "").trim().toLowerCase();
+
+const toYMD = (value) => {
+  if (!value) return "";
+  const text = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 10);
+  const parsed = new Date(text);
+  return isNaN(parsed) ? "" : getLocalDate(parsed);
+};
+
+const formatMoney = (amount) =>
+  Number(amount || 0).toLocaleString("en-BD", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+
+// Listattendance / Salarylist er moto: res.data.data (array)
+const getRows = (response) => {
+  const result = response?.data;
+  if (Array.isArray(result?.data)) return result.data;
+  if (Array.isArray(result)) return result;
+  if (Array.isArray(result?.records)) return result.records;
+  return [];
+};
+
+// Salarylist er moto: "Paid" chara shob Pending
+const salaryState = (salary) =>
+  normalize(salary.payment_status) === "paid" ? "Paid" : "Pending";
+
+const attendanceDate = (item) => toYMD(item.date || item.attendance_date);
+
+const attendanceBadge = (status) => {
+  const s = normalize(status);
+  if (s === "present") return "bg-success";
+  if (s === "absent" || s === "a") return "bg-danger";
+  if (s.includes("late")) return "bg-warning text-dark";
+  return "bg-secondary";
+};
+
+/* ---------- Donut chart ---------- */
 const CircleChart = ({ paid, unpaid, total }) => {
   const radius = 75;
   const circumference = 2 * Math.PI * radius;
-
   const paidLength = total > 0 ? (paid / total) * circumference : 0;
   const unpaidLength = total > 0 ? (unpaid / total) * circumference : 0;
-
-  const percentage =
-    total > 0 ? Math.round((paid / total) * 100) : 0;
+  const percentage = total > 0 ? Math.round((paid / total) * 100) : 0;
 
   return (
     <div className="d-flex flex-column flex-md-row align-items-center justify-content-center gap-4">
-      <div style={{ width: 210, height: 210, position: "relative" }}>
+      <div style={{ width: 210, height: 210 }}>
         <svg viewBox="0 0 180 180" width="100%" height="100%">
-          <circle
-            cx="90"
-            cy="90"
-            r={radius}
-            fill="none"
-            stroke="#e9ecef"
-            strokeWidth="20"
-          />
-
+          <circle cx="90" cy="90" r={radius} fill="none" stroke="#e9ecef" strokeWidth="20" />
           {total > 0 && (
             <>
               <circle
-                cx="90"
-                cy="90"
-                r={radius}
-                fill="none"
-                stroke="#198754"
-                strokeWidth="20"
+                cx="90" cy="90" r={radius} fill="none" stroke="#198754" strokeWidth="20"
                 strokeDasharray={`${paidLength} ${circumference}`}
                 strokeDashoffset="0"
-                strokeLinecap="butt"
                 transform="rotate(-90 90 90)"
               />
-
               <circle
-                cx="90"
-                cy="90"
-                r={radius}
-                fill="none"
-                stroke="#ffc107"
-                strokeWidth="20"
+                cx="90" cy="90" r={radius} fill="none" stroke="#ffc107" strokeWidth="20"
                 strokeDasharray={`${unpaidLength} ${circumference}`}
                 strokeDashoffset={-paidLength}
-                strokeLinecap="butt"
                 transform="rotate(-90 90 90)"
               />
             </>
           )}
-
-          <text
-            x="90"
-            y="85"
-            textAnchor="middle"
-            fontSize="25"
-            fontWeight="bold"
-            fill="#212529"
-          >
+          <text x="90" y="85" textAnchor="middle" fontSize="25" fontWeight="bold" fill="#212529">
             {percentage}%
           </text>
-
-          <text
-            x="90"
-            y="106"
-            textAnchor="middle"
-            fontSize="11"
-            fill="#6c757d"
-          >
-            Paid
-          </text>
+          <text x="90" y="106" textAnchor="middle" fontSize="11" fill="#6c757d">Paid</text>
         </svg>
       </div>
 
-      <div style={{ minWidth: "190px" }}>
+      <div style={{ minWidth: 190 }}>
         <div className="mb-3">
           <div className="d-flex align-items-center gap-2 mb-1">
-            <span
-              className="rounded-circle"
-              style={{
-                width: 12,
-                height: 12,
-                background: "#198754",
-              }}
-            ></span>
+            <span className="rounded-circle" style={{ width: 12, height: 12, background: "#198754" }}></span>
             <span className="text-muted">Paid Salary</span>
           </div>
-          <h5 className="mb-0 text-success">
-            ৳ {Number(paid).toLocaleString("en-BD")}
-          </h5>
+          <h5 className="mb-0 text-success">৳ {formatMoney(paid)}</h5>
         </div>
-
         <div className="mb-3">
           <div className="d-flex align-items-center gap-2 mb-1">
-            <span
-              className="rounded-circle"
-              style={{
-                width: 12,
-                height: 12,
-                background: "#ffc107",
-              }}
-            ></span>
+            <span className="rounded-circle" style={{ width: 12, height: 12, background: "#ffc107" }}></span>
             <span className="text-muted">Unpaid Salary</span>
           </div>
-          <h5 className="mb-0 text-warning">
-            ৳ {Number(unpaid).toLocaleString("en-BD")}
-          </h5>
+          <h5 className="mb-0 text-warning">৳ {formatMoney(unpaid)}</h5>
         </div>
-
         <div className="border-top pt-2">
           <span className="text-muted">Total Salary</span>
-          <h5 className="mb-0">
-            ৳ {Number(total).toLocaleString("en-BD")}
-          </h5>
+          <h5 className="mb-0">৳ {formatMoney(total)}</h5>
         </div>
       </div>
     </div>
   );
 };
 
+/* ---------- Dashboard ---------- */
 const Dashboard = () => {
   const [workers, setWorkers] = useState([]);
   const [attendances, setAttendances] = useState([]);
   const [salaries, setSalaries] = useState([]);
 
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // API response theke array ber korbe
-  const getRows = (response) => {
-    const result = response?.data;
+  const [selectedDate, setSelectedDate] = useState(getLocalDate());
+  const [salaryMonth, setSalaryMonth] = useState(getLocalDate().slice(0, 7));
 
-    if (Array.isArray(result)) return result;
-    if (Array.isArray(result?.data)) return result.data;
-    if (Array.isArray(result?.records)) return result.records;
-
-    return [];
-  };
-
-  // Local date: YYYY-MM-DD
-  const getLocalDate = (date = new Date()) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  };
-
-  const formatMoney = (amount) => {
-    return Number(amount || 0).toLocaleString("en-BD");
-  };
-
-  // Dashboard API fetch
   const fetchDashboardData = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
 
-    try {
-      const results = await Promise.allSettled([
-        axios.get("workers/index.php"),
-        axios.get("attendances/index.php"),
-        axios.get("salary/index.php"),
-      ]);
+    const requests = [
+      { label: "Workers", url: "workers/index.php", set: setWorkers },
+      { label: "Attendance", url: "attendances/index.php", set: setAttendances },
+      { label: "Salary", url: "salary/index.php", set: setSalaries },
+    ];
 
-      if (results[0].status === "fulfilled") {
-        setWorkers(getRows(results[0].value));
+    const results = await Promise.allSettled(requests.map((r) => axios.get(r.url)));
+    const newErrors = [];
+
+    results.forEach((result, i) => {
+      const req = requests[i];
+      if (result.status === "fulfilled") {
+        if (result.value?.data?.status === false) {
+          newErrors.push(`${req.label}: ${result.value.data.message || "API error"}`);
+        }
+        req.set(getRows(result.value));
       } else {
-        console.error("Worker API error:", results[0].reason);
+        console.error(`${req.label} API error:`, result.reason);
+        newErrors.push(
+          `${req.label}: ${
+            result.reason?.response?.data?.message ||
+            result.reason?.message ||
+            "Could not load"
+          } (${req.url})`
+        );
       }
+    });
 
-      if (results[1].status === "fulfilled") {
-        setAttendances(getRows(results[1].value));
-      } else {
-        console.error("Attendance API error:", results[1].reason);
-      }
-
-      if (results[2].status === "fulfilled") {
-        setSalaries(getRows(results[2].value));
-      } else {
-        console.error("Salary API error:", results[2].reason);
-      }
-
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error("Dashboard data loading error:", error);
-    } finally {
-      setLoading(false);
-    }
+    setErrors(newErrors);
+    setLastUpdated(new Date());
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchDashboardData(true);
-
-    // 10 second por por dashboard update
-    const interval = setInterval(() => {
-      fetchDashboardData(false);
-    }, 10000);
-
-    const handleFocus = () => fetchDashboardData(false);
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        fetchDashboardData(false);
-      }
-    };
-
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibility);
-
+    const interval = setInterval(() => fetchDashboardData(false), 10000);
+    const onFocus = () => fetchDashboardData(false);
+    window.addEventListener("focus", onFocus);
     return () => {
       clearInterval(interval);
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", onFocus);
     };
   }, [fetchDashboardData]);
 
-  // Worker statistics
+  /* ----- Workers ----- */
   const totalWorkers = workers.length;
-
-  const activeWorkers = workers.filter(
-    (worker) =>
-      String(worker.status || "").toLowerCase() === "active"
-  ).length;
-
+  const activeWorkers = workers.filter((w) => normalize(w.status) === "active").length;
   const inactiveWorkers = totalWorkers - activeWorkers;
 
-  // Today's attendance
-  const today = getLocalDate();
-
-  const todayAttendances = attendances.filter(
-    (item) => String(item.date || "").slice(0, 10) === today
+  /* ----- Attendance for selected date ----- */
+  const dayAttendances = useMemo(
+    () => attendances.filter((a) => attendanceDate(a) === selectedDate),
+    [attendances, selectedDate]
   );
 
-  const todayPresent = todayAttendances.filter(
-    (item) => String(item.status || "").toLowerCase() === "present"
-  ).length;
+  const present = dayAttendances.filter((a) => normalize(a.status) === "present").length;
+  const absent = dayAttendances.filter((a) => ["absent", "a"].includes(normalize(a.status))).length;
+  const late = dayAttendances.filter((a) => normalize(a.status).includes("late")).length;
+  const marked = present + absent + late;
+  const attendancePercentage = marked > 0 ? Math.round(((present + late) / marked) * 100) : 0;
 
-  const todayAbsent = todayAttendances.filter(
-    (item) => String(item.status || "").toLowerCase() === "absent"
-  ).length;
+  // Latest attendance date (jodi selected date e kichu na thake)
+  const latestAttendanceDate = useMemo(() => {
+    const dates = attendances.map(attendanceDate).filter(Boolean).sort();
+    return dates.length ? dates[dates.length - 1] : "";
+  }, [attendances]);
 
-  const todayLate = todayAttendances.filter(
-    (item) => String(item.status || "").toLowerCase() === "late"
-  ).length;
+  /* ----- Salary (selected month) ----- */
+  const monthSalaries = useMemo(
+    () => salaries.filter((s) => toYMD(s.salary_date).slice(0, 7) === salaryMonth),
+    [salaries, salaryMonth]
+  );
 
-  const attendanceTotal =
-    todayPresent + todayAbsent + todayLate;
-
-  const attendancePercentage =
-    attendanceTotal > 0
-      ? Math.round((todayPresent / attendanceTotal) * 100)
-      : 0;
-
-  // Current month salary
-  const currentMonth = today.slice(0, 7);
-
-  const currentMonthSalary = salaries
-    .filter((salary) => {
-      const salaryDate = String(salary.salary_date || "").slice(0, 10);
-
-      return salaryDate.slice(0, 7) === currentMonth;
-    })
-    .reduce(
-      (total, salary) => total + Number(salary.net_salary || 0),
-      0
-    );
-
-  // Salary Report: Paid and Unpaid
   const salaryReport = useMemo(() => {
     let paid = 0;
     let unpaid = 0;
+    const unpaidWorkers = new Set();
 
-    salaries.forEach((salary) => {
-      const amount = Number(salary.net_salary || 0);
-
-      if (
-        String(salary.payment_status || "").toLowerCase() === "paid"
-      ) {
-        paid += amount;
-      } else {
+    monthSalaries.forEach((s) => {
+      const amount = Number(s.net_salary || 0);
+      if (salaryState(s) === "Paid") paid += amount;
+      else {
         unpaid += amount;
+        unpaidWorkers.add(String(s.worker_id));
       }
     });
 
@@ -293,114 +218,138 @@ const Dashboard = () => {
       paid,
       unpaid,
       total: paid + unpaid,
-      records: salaries.length,
+      records: monthSalaries.length,
+      unpaidEmployees: unpaidWorkers.size,
     };
+  }, [monthSalaries]);
+
+  // Selected date er salary (worker per day 1 kaj)
+  const daySalary = useMemo(
+    () =>
+      salaries
+        .filter((s) => toYMD(s.salary_date) === selectedDate)
+        .reduce((sum, s) => sum + Number(s.net_salary || 0), 0),
+    [salaries, selectedDate]
+  );
+
+  // Latest salary month (jodi selected month e kichu na thake)
+  const latestSalaryMonth = useMemo(() => {
+    const months = salaries.map((s) => toYMD(s.salary_date).slice(0, 7)).filter(Boolean).sort();
+    return months.length ? months[months.length - 1] : "";
   }, [salaries]);
 
-  // Recent workers
-  const recentWorkers = useMemo(() => {
-    return [...workers].slice(-5).reverse();
-  }, [workers]);
+  /* ----- Recent lists ----- */
+  const recentWorkers = useMemo(() => [...workers].slice(-5).reverse(), [workers]);
 
-  // Recent attendance
   const recentAttendances = useMemo(() => {
     return [...attendances]
       .sort((a, b) => {
-        const dateA = new Date(
-          `${a.date || "2000-01-01"} ${a.in_time || "00:00:00"}`
-        );
-
-        const dateB = new Date(
-          `${b.date || "2000-01-01"} ${b.in_time || "00:00:00"}`
-        );
-
-        return dateB - dateA;
+        const da = new Date(`${attendanceDate(a) || "2000-01-01"} ${a.in_time || "00:00:00"}`);
+        const db = new Date(`${attendanceDate(b) || "2000-01-01"} ${b.in_time || "00:00:00"}`);
+        return db - da;
       })
       .slice(0, 5);
   }, [attendances]);
 
   const stats = [
-    {
-      title: "Total Workers",
-      value: totalWorkers,
-      icon: "bi-people-fill",
-      color: "primary",
-    },
-    {
-      title: "Active Workers",
-      value: activeWorkers,
-      icon: "bi-person-check-fill",
-      color: "success",
-    },
-    {
-      title: "Today's Present",
-      value: todayPresent,
-      icon: "bi-calendar-check-fill",
-      color: "info",
-    },
-    {
-      title: "Today's Absent",
-      value: todayAbsent,
-      icon: "bi-calendar-x-fill",
-      color: "danger",
-    },
-    {
-      title: "Today's Late",
-      value: todayLate,
-      icon: "bi-clock-fill",
-      color: "warning",
-    },
-    {
-      title: "Current Month Salary",
-      value: `৳ ${formatMoney(currentMonthSalary)}`,
-      icon: "bi-cash-stack",
-      color: "success",
-    },
+    { title: "Total Workers", value: totalWorkers, icon: "bi-people-fill", color: "primary" },
+    { title: "Active Workers", value: activeWorkers, icon: "bi-person-check-fill", color: "success" },
+    { title: "Present", value: present, icon: "bi-calendar-check-fill", color: "info" },
+    { title: "Absent", value: absent, icon: "bi-calendar-x-fill", color: "danger" },
+    { title: "Late", value: late, icon: "bi-clock-fill", color: "warning" },
+    { title: `Salary on ${selectedDate}`, value: `৳ ${formatMoney(daySalary)}`, icon: "bi-cash", color: "primary" },
+    { title: `Salary (${salaryMonth})`, value: `৳ ${formatMoney(salaryReport.total)}`, icon: "bi-cash-stack", color: "success" },
+    { title: "Unpaid Employees", value: salaryReport.unpaidEmployees, icon: "bi-exclamation-circle-fill", color: "danger" },
   ];
 
   return (
     <Layout>
       <div className="container-fluid">
-
-        {/* Dashboard Header */}
-        <div className="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        {/* Header */}
+        <div className="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
           <div>
             <h3 className="mb-1">Dashboard</h3>
             <p className="text-muted mb-0">
               A smarter way to manage workers, attendance, and salaries.
             </p>
-            <small className="text-muted">
-              Last updated: {lastUpdated.toLocaleTimeString()}
-            </small>
+            <small className="text-muted">Last updated: {lastUpdated.toLocaleTimeString()}</small>
           </div>
 
-          <button
-            type="button"
-            className="btn btn-primary mt-2"
-            onClick={() => fetchDashboardData(true)}
-            disabled={loading}
-          >
-            <i className="bi bi-arrow-clockwise me-2"></i>
-            {loading ? "Loading..." : "Refresh"}
-          </button>
+          <div className="d-flex flex-wrap align-items-end gap-2">
+            <div>
+              <label className="form-label small mb-1">Attendance date</label>
+              <input
+                type="date"
+                className="form-control"
+                value={selectedDate}
+                onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="form-label small mb-1">Salary month</label>
+              <input
+                type="month"
+                className="form-control"
+                value={salaryMonth}
+                onChange={(e) => e.target.value && setSalaryMonth(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => fetchDashboardData(true)}
+              disabled={loading}
+            >
+              <i className="bi bi-arrow-clockwise me-2"></i>
+              {loading ? "Loading..." : "Refresh"}
+            </button>
+          </div>
         </div>
 
-        {/* Statistics Cards */}
+        {/* API errors */}
+        {errors.length > 0 && (
+          <div className="alert alert-danger">
+            <strong>Data load hoyni:</strong>
+            <ul className="mb-0">
+              {errors.map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Hints when selected date / month is empty */}
+        {!loading && attendances.length > 0 && marked === 0 && latestAttendanceDate && (
+          <div className="alert alert-info d-flex justify-content-between align-items-center">
+            <span>{selectedDate} date e kono attendance nai. Latest attendance: {latestAttendanceDate}</span>
+            <button className="btn btn-sm btn-info text-white" onClick={() => setSelectedDate(latestAttendanceDate)}>
+              Show {latestAttendanceDate}
+            </button>
+          </div>
+        )}
+
+        {!loading && salaries.length > 0 && salaryReport.records === 0 && latestSalaryMonth && (
+          <div className="alert alert-info d-flex justify-content-between align-items-center">
+            <span>{salaryMonth} mashe kono salary record nai. Latest salary month: {latestSalaryMonth}</span>
+            <button className="btn btn-sm btn-info text-white" onClick={() => setSalaryMonth(latestSalaryMonth)}>
+              Show {latestSalaryMonth}
+            </button>
+          </div>
+        )}
+
+        {/* Stat cards */}
         <div className="row g-3 mb-4">
           {stats.map((item, index) => (
-            <div className="col-xl-4 col-md-6" key={index}>
+            <div className="col-xl-3 col-md-6" key={index}>
               <div className="card h-100 border-0 shadow-sm">
                 <div className="card-body d-flex align-items-center justify-content-between">
                   <div>
                     <p className="text-muted mb-2">{item.title}</p>
-                    <h3 className="mb-0">
-                      {loading ? "..." : item.value}
-                    </h3>
+                    <h3 className="mb-0">{loading ? "..." : item.value}</h3>
                   </div>
-
                   <div
                     className={`bg-${item.color} bg-opacity-10 text-${item.color} rounded-circle d-flex align-items-center justify-content-center`}
-                    style={{ width: "55px", height: "55px" }}
+                    style={{ width: 55, height: 55 }}
                   >
                     <i className={`bi ${item.icon} fs-4`}></i>
                   </div>
@@ -410,53 +359,43 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Attendance Overview and Worker Summary */}
+        {/* Attendance overview + worker summary */}
         <div className="row g-3 mb-4">
           <div className="col-lg-7">
             <div className="card border-0 shadow-sm h-100">
               <div className="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 className="mb-0">Attendance Overview</h5>
-                <span className="badge bg-primary">{today}</span>
+                <span className="badge bg-primary">{selectedDate}</span>
               </div>
-
               <div className="card-body">
-                {attendanceTotal === 0 ? (
+                {marked === 0 ? (
                   <div className="text-center py-4">
                     <i className="bi bi-calendar-x text-muted fs-1"></i>
-                    <h6 className="mt-3">No attendance records yet</h6>
-                    <p className="text-muted mb-0">
-                      Today's attendance data will appear here after attendance is added.
-                    </p>
+                    <h6 className="mt-3">No attendance records for this date</h6>
+                    <Link to="/attendance/add" className="btn btn-sm btn-outline-primary mt-2">
+                      Add attendance
+                    </Link>
                   </div>
                 ) : (
                   <>
                     <div className="d-flex justify-content-between mb-2">
-                      <span className="text-muted">
-                        Present percentage
-                      </span>
+                      <span className="text-muted">Attendance percentage</span>
                       <strong>{attendancePercentage}%</strong>
                     </div>
-
-                    <div className="progress mb-4" style={{ height: "12px" }}>
-                      <div
-                        className="progress-bar bg-success"
-                        style={{ width: `${attendancePercentage}%` }}
-                      ></div>
+                    <div className="progress mb-4" style={{ height: 12 }}>
+                      <div className="progress-bar bg-success" style={{ width: `${attendancePercentage}%` }}></div>
                     </div>
-
                     <div className="row text-center g-3">
                       <div className="col-4">
-                        <h3 className="text-success mb-1">{todayPresent}</h3>
+                        <h3 className="text-success mb-1">{present}</h3>
                         <span className="text-muted">Present</span>
                       </div>
-
                       <div className="col-4">
-                        <h3 className="text-danger mb-1">{todayAbsent}</h3>
+                        <h3 className="text-danger mb-1">{absent}</h3>
                         <span className="text-muted">Absent</span>
                       </div>
-
                       <div className="col-4">
-                        <h3 className="text-warning mb-1">{todayLate}</h3>
+                        <h3 className="text-warning mb-1">{late}</h3>
                         <span className="text-muted">Late</span>
                       </div>
                     </div>
@@ -471,39 +410,23 @@ const Dashboard = () => {
               <div className="card-header bg-white">
                 <h5 className="mb-0">Worker Summary</h5>
               </div>
-
               <div className="card-body">
                 <div className="d-flex justify-content-between mb-3">
                   <span>Total Workers</span>
                   <strong>{loading ? "..." : totalWorkers}</strong>
                 </div>
-
-                <div className="progress mb-3" style={{ height: "10px" }}>
+                <div className="progress mb-3" style={{ height: 10 }}>
                   <div
                     className="progress-bar bg-success"
-                    style={{
-                      width: `${
-                        totalWorkers
-                          ? (activeWorkers / totalWorkers) * 100
-                          : 0
-                      }%`,
-                    }}
+                    style={{ width: `${totalWorkers ? (activeWorkers / totalWorkers) * 100 : 0}%` }}
                   ></div>
                 </div>
-
                 <div className="d-flex justify-content-between mb-3">
-                  <span className="text-success">
-                    <i className="bi bi-circle-fill me-2"></i>
-                    Active Workers
-                  </span>
+                  <span className="text-success"><i className="bi bi-circle-fill me-2"></i>Active Workers</span>
                   <strong>{activeWorkers}</strong>
                 </div>
-
                 <div className="d-flex justify-content-between">
-                  <span className="text-danger">
-                    <i className="bi bi-circle-fill me-2"></i>
-                    Inactive Workers
-                  </span>
+                  <span className="text-danger"><i className="bi bi-circle-fill me-2"></i>Inactive Workers</span>
                   <strong>{inactiveWorkers}</strong>
                 </div>
               </div>
@@ -511,103 +434,67 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Salary Report Circle Diagram */}
+        {/* Salary report */}
         <div className="row g-3 mb-4">
           <div className="col-12">
             <div className="card border-0 shadow-sm">
               <div className="card-header bg-white d-flex flex-wrap justify-content-between align-items-center">
                 <div>
                   <h5 className="mb-1">Salary Report</h5>
-                  <small className="text-muted">
-                    Paid and unpaid salary overview
-                  </small>
+                  <small className="text-muted">Paid and unpaid salary for {salaryMonth}</small>
                 </div>
-
-                <span className="badge bg-primary">
-                  {salaryReport.records} Records
-                </span>
+                <div className="d-flex gap-2 align-items-center">
+                  <span className="badge bg-primary">{salaryReport.records} Records</span>
+                  <Link to="/salary" className="btn btn-sm btn-outline-primary">View salaries</Link>
+                </div>
               </div>
-
               <div className="card-body">
                 {loading ? (
                   <div className="text-center py-5">
                     <div className="spinner-border text-primary"></div>
-                    <p className="text-muted mt-2 mb-0">
-                      Loading salary report...
-                    </p>
                   </div>
                 ) : salaryReport.records === 0 ? (
                   <div className="text-center py-5">
                     <i className="bi bi-pie-chart text-muted fs-1"></i>
-                    <h6 className="mt-3">No salary report data available</h6>
-                    <p className="text-muted mb-0">
-                      Salary records will appear here after adding salary data.
-                    </p>
+                    <h6 className="mt-3">No salary data for this month</h6>
                   </div>
                 ) : (
-                  <CircleChart
-                    paid={salaryReport.paid}
-                    unpaid={salaryReport.unpaid}
-                    total={salaryReport.total}
-                  />
+                  <CircleChart paid={salaryReport.paid} unpaid={salaryReport.unpaid} total={salaryReport.total} />
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Recent Workers and Attendance */}
+        {/* Recent workers + attendance */}
         <div className="row g-3 mb-4">
-
-          {/* Recent Workers */}
           <div className="col-lg-6">
             <div className="card border-0 shadow-sm h-100">
               <div className="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 className="mb-0">Recent Workers</h5>
-                <span className="badge bg-primary">
-                  {workers.length} Workers
-                </span>
+                <span className="badge bg-primary">{workers.length} Workers</span>
               </div>
-
               <div className="card-body p-0">
                 <div className="table-responsive">
                   <table className="table table-hover align-middle mb-0">
                     <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                      </tr>
+                      <tr><th>Name</th><th>Phone</th><th>Status</th></tr>
                     </thead>
-
                     <tbody>
                       {recentWorkers.length > 0 ? (
-                        recentWorkers.map((worker, index) => (
-                          <tr key={worker.id || worker.worker_id || index}>
-                            <td>{worker.name || "N/A"}</td>
-                            <td>{worker.phone || "N/A"}</td>
+                        recentWorkers.map((w, i) => (
+                          <tr key={w.id || w.worker_id || i}>
+                            <td>{w.name || "N/A"}</td>
+                            <td>{w.phone || "N/A"}</td>
                             <td>
-                              <span
-                                className={`badge ${
-                                  String(worker.status || "").toLowerCase() === "active"
-                                    ? "bg-success"
-                                    : "bg-secondary"
-                                }`}
-                              >
-                                {worker.status || "N/A"}
+                              <span className={`badge ${normalize(w.status) === "active" ? "bg-success" : "bg-secondary"}`}>
+                                {w.status || "N/A"}
                               </span>
                             </td>
                           </tr>
                         ))
                       ) : (
-                        <tr>
-                          <td
-                            colSpan="3"
-                            className="text-center py-4 text-muted"
-                          >
-                            No workers found
-                          </td>
-                        </tr>
+                        <tr><td colSpan="3" className="text-center py-4 text-muted">No workers found</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -616,56 +503,33 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Recent Attendance */}
           <div className="col-lg-6">
             <div className="card border-0 shadow-sm h-100">
-              <div className="card-header bg-white">
+              <div className="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 className="mb-0">Recent Attendance</h5>
+                <Link to="/attendance" className="btn btn-sm btn-outline-primary">View all</Link>
               </div>
-
               <div className="card-body p-0">
                 <div className="table-responsive">
                   <table className="table table-hover align-middle mb-0">
                     <thead>
-                      <tr>
-                        <th>Worker</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                      </tr>
+                      <tr><th>Worker</th><th>Date</th><th>Status</th></tr>
                     </thead>
-
                     <tbody>
                       {recentAttendances.length > 0 ? (
-                        recentAttendances.map((item, index) => (
-                          <tr key={item.id || index}>
-                            <td>{item.name || "N/A"}</td>
-                            <td>{item.date || "N/A"}</td>
+                        recentAttendances.map((item, i) => (
+                          <tr key={item.id || i}>
+                            <td>{item.name || item.worker_name || "N/A"}</td>
+                            <td>{attendanceDate(item) || "N/A"}</td>
                             <td>
-                              <span
-                                className={`badge ${
-                                  String(item.status || "").toLowerCase() === "present"
-                                    ? "bg-success"
-                                    : String(item.status || "").toLowerCase() === "absent"
-                                    ? "bg-danger"
-                                    : String(item.status || "").toLowerCase() === "late"
-                                    ? "bg-warning text-dark"
-                                    : "bg-secondary"
-                                }`}
-                              >
+                              <span className={`badge ${attendanceBadge(item.status)}`}>
                                 {item.status || "N/A"}
                               </span>
                             </td>
                           </tr>
                         ))
                       ) : (
-                        <tr>
-                          <td
-                            colSpan="3"
-                            className="text-center py-4 text-muted"
-                          >
-                            No attendance records found
-                          </td>
-                        </tr>
+                        <tr><td colSpan="3" className="text-center py-4 text-muted">No attendance records found</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -673,7 +537,6 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </Layout>
